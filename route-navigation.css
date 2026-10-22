@@ -47,3 +47,24 @@
 .route-viewport.is-native .route-track{padding-inline:calc(50% - 58px)}
 }
 @media(prefers-reduced-motion:reduce){.route-dock,.route-dock *{scroll-behavior:auto!important}}
+/* One compact route row when the phone reading panel provides nearby navigation. */
+@media(max-width:680px),(max-width:920px) and (max-height:520px){
+ .stage.has-detail.reading-sheet-enabled .route-dock{top:calc(var(--toolbar-height) + 4px);height:56px;width:calc(100% - 20px);padding:4px 8px;display:grid;grid-template-columns:44px minmax(0,1fr);grid-template-rows:48px;gap:8px;align-items:center}
+ .stage.has-detail.reading-sheet-enabled .route-controls{height:44px;justify-content:flex-start;gap:0}
+ .stage.has-detail.reading-sheet-enabled .route-exit,.stage.has-detail.reading-sheet-enabled .route-position{display:none}
+ .stage.has-detail.reading-sheet-enabled .route-play{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:44px;min-width:44px;height:44px;min-height:44px;padding:4px;font-size:0;line-height:0}
+ .stage.has-detail.reading-sheet-enabled .route-play::before{content:'▶';font-size:13px;line-height:16px}
+ .stage.has-detail.reading-sheet-enabled .route-play::after{content:'自动';font-size:9px;line-height:12px}
+ .stage.has-detail.reading-sheet-enabled .route-play[aria-pressed=true]::before{content:'Ⅱ'}
+ .stage.has-detail.reading-sheet-enabled .route-play[aria-pressed=true]::after{content:'暂停';font-size:9px}
+ .stage.has-detail.reading-sheet-enabled .route-stations{height:48px;grid-template-columns:44px minmax(0,1fr) 44px;gap:4px}
+ .stage.has-detail.reading-sheet-enabled .route-arrow{min-width:44px;min-height:44px;font-size:25px}
+ .stage.has-detail.reading-sheet-enabled .route-slide{flex-basis:128px}
+ .stage.has-detail.reading-sheet-enabled .route-stop{height:48px;padding:6px 8px;gap:6px}
+ .stage.has-detail.reading-sheet-enabled .route-name{font-size:11px}
+ .stage.has-detail.reading-sheet-enabled .route-step{font-size:9px}
+ .stage.has-detail.reading-sheet-enabled .route-viewport.is-native .route-track{padding-inline:calc(50% - 64px)}
+}
+@media(min-width:480px) and (max-width:920px) and (max-height:520px){
+ .stage.has-detail.reading-sheet-enabled .route-dock{left:10px;transform:none;width:calc(100% - var(--rs-aside-width) - 30px)}
+}

@@ -5,11 +5,11 @@
  function create(options){
   const ids=new Set(options.ids),axis=new Set(options.axisIds);
   const tabs=['习俗','非遗','提示'];
-  const blank=()=>({point:null,route:false,tab:'习俗',media:null,overlay:null,image:false});
+  const blank=()=>({point:null,route:false,tab:'习俗',media:null,overlay:null,image:false,nearby:[]});
   function clean(value={}){
    value=value||{};
-   const point=ids.has(value.point)?value.point:null;
-   return {point,route:!!point&&axis.has(point)&&value.route===true,tab:tabs.includes(value.tab)?value.tab:'习俗',media:point&&Number.isInteger(value.media)&&value.media>=0&&value.media<(options.noteCounts?.[point]??20)?value.media:null,overlay:['atlas','menu'].includes(value.overlay)?value.overlay:null,image:!!point&&value.image===true};
+   const point=ids.has(value.point)?value.point:null,overlay=['atlas','menu','stamps','nearby'].includes(value.overlay)?value.overlay:null;
+   return {point,route:!!point&&axis.has(point)&&value.route===true,tab:tabs.includes(value.tab)?value.tab:'习俗',media:point&&Number.isInteger(value.media)&&value.media>=0&&value.media<(options.noteCounts?.[point]??20)?value.media:null,overlay,image:!!point&&value.image===true,nearby:overlay==='nearby'&&Array.isArray(value.nearby)?[...new Set(value.nearby.filter(id=>ids.has(id)))].slice(0,6):[]};
   }
   const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   const samePlace=(a,b)=>a.point===b.point&&a.route===b.route&&a.media===b.media&&a.overlay===b.overlay&&a.image===b.image;
@@ -17,16 +17,16 @@
    const params=new URLSearchParams(location.hash.slice(1));
    if(!ids.has(params.get('point')))return null;
    const note=Number(params.get('note'));
-   return clean({point:params.get('point'),route:params.get('route')==='1',media:params.has('note')&&Number.isInteger(note)&&note>0?note-1:null,image:params.get('image')==='1'});
+   return clean({point:params.get('point'),route:params.get('route')==='1',tab:params.get('tab'),media:params.has('note')&&Number.isInteger(note)&&note>0?note-1:null,image:params.get('image')==='1'});
   }
   const previous=history.state?.[field];
   let key=previous?.v===1&&typeof previous.key==='string'?previous.key:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
   let trail=[],position=0,current=blank(),pending=null,replaying=false,revision=0,destroyed=false;
   const listeners=[];
   function urlFor(snapshot){
-   const url=new URL(location.href);url.searchParams.delete('resume');url.searchParams.delete('fresh');
+   const url=new URL(location.href);url.searchParams.delete('resume');url.searchParams.delete('fresh');url.searchParams.delete('start');
    const hash=new URLSearchParams();
-   if(snapshot.point){hash.set('point',snapshot.point);if(snapshot.route)hash.set('route','1');if(snapshot.media!==null)hash.set('note',String(snapshot.media+1));if(snapshot.image)hash.set('image','1')}
+   if(snapshot.point){hash.set('point',snapshot.point);if(snapshot.route)hash.set('route','1');if(snapshot.tab!=='习俗')hash.set('tab',snapshot.tab);if(snapshot.media!==null)hash.set('note',String(snapshot.media+1));if(snapshot.image)hash.set('image','1')}
    url.hash=hash.toString();return url.href;
   }
   function write(snapshot,push=false){
@@ -87,7 +87,7 @@
    point(id,route=false){commit({...blank(),point:id,route},'point')},
    map(){commit(blank(),'close')},
    tab(value){commit({...current,tab:value},'replace')},
-   openOverlay(name){commit({...current,media:null,image:false,overlay:name},'overlay')},
+   openOverlay(name,details={}){commit({...current,media:null,image:false,overlay:name,nearby:details.ids||current.nearby},'overlay')},
    closeOverlay(name){if(current.overlay===name)commit({...current,overlay:null},'close')},
    media(index){commit({...current,media:index,overlay:null,image:false},'media')},
    closeMedia(){if(current.media!==null)commit({...current,media:null,image:false},'close')},

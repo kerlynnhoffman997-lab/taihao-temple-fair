@@ -8,16 +8,18 @@
 <meta property="og:title" content="太昊陵庙会 · 进香巡游图">
 <meta property="og:description" content="走进庙会，探访民俗。">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://kerlynnhoffman997-lab.github.io/taihao-temple-fair/assets/home/home-03.jpg">
+<meta property="og:image" content="https://kerlynnhoffman997-lab.github.io/taihao-temple-fair/assets/home/optimized/home-03.jpg">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="480">
 <title>太昊陵庙会 · 进香巡游图</title>
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="home.css?v=flow1">
+<link rel="stylesheet" href="home.css?v=opt1">
 <link rel="stylesheet" href="transition.css?v=entry2">
-<link rel="preload" as="image" href="assets/home/home-03.jpg" fetchpriority="high">
+<link rel="preload" as="image" href="assets/home/optimized/home-03.webp" type="image/webp" fetchpriority="high">
 <script src="assets/vendor/motion-mini.js" defer></script>
 <script src="assets/js/motion-ui.js" defer></script>
-<script src="home.js?v=flow1" defer></script>
-<script src="assets/js/home-resume.js?v=flow1" defer></script>
+<script src="home.js?v=opt1" defer></script>
+<script src="assets/js/home-resume.js?v=opt1" defer></script>
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -41,7 +43,7 @@ See THIRD_PARTY_NOTICES.txt. The original tour is retained in tour.html. -->
 <a class="skip-link" href="#enter">跳到庙会入口</a>
 <header class="site-header">
 <a class="wordmark" href="./" aria-label="太昊陵庙会首页"><span class="wordmark-cn">太昊陵<span class="wordmark-dot" aria-hidden="true"></span>庙会</span><span class="wordmark-en">TAIHAO TEMPLE FAIR</span></a>
-<a class="header-link" href="tour.html">走进庙会 <span aria-hidden="true">↗</span></a>
+<a class="header-link" href="tour.html?start=route">走进庙会 <span aria-hidden="true">↗</span></a>
 </header>
 <main class="hero" aria-labelledby="page-title" aria-describedby="gallery-description">
 <p class="sr-only" id="gallery-description">环绕画廊展示巡游表演、民俗手作与庙会小吃插画。可用页面底部按钮控制播放，或直接进入庙会地图。</p>
@@ -49,7 +51,7 @@ See THIRD_PARTY_NOTICES.txt. The original tour is retained in tour.html. -->
 <div class="gallery" aria-hidden="true"><canvas id="gallery-canvas"></canvas></div>
 <div class="fallback-heading"><h1 id="page-title"><span>太昊陵庙会</span><strong>进香巡游图</strong></h1></div>
 <div class="hero-note"><span class="live-dot" aria-hidden="true"></span>太昊民俗，烟火人间</div>
-<div class="entry"><p class="entry-copy">逛一场庙会，看一方风物。</p><a class="enter-link" id="enter" href="tour.html"><span>进入庙会</span><span class="enter-arrow" aria-hidden="true">↗</span></a><a class="restart-link" id="start-fresh" href="tour.html?fresh=1" hidden>从地图重新开始</a></div>
+<div class="entry"><p class="entry-copy">逛一场庙会，看一方风物。</p><a class="enter-link" id="enter" href="tour.html?start=route"><span>跟随巡游</span><span class="enter-arrow" aria-hidden="true">↗</span></a><div class="entry-secondary"><a class="restart-link" id="start-fresh" href="tour.html?fresh=1">自由探索地图</a><a class="restart-link" id="start-route" href="tour.html?start=route&amp;fresh=1" hidden>从头巡游</a></div></div>
 </main>
 <footer class="site-footer">
 <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false" disabled><span class="motion-icon" aria-hidden="true"></span><span id="motion-label">播放环绕</span></button>

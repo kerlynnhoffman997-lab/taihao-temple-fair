@@ -2,9 +2,10 @@
 (() => {
   'use strict';
   const events = new AbortController();
-  let dialog, viewport, image, heading, message, zoomButton, resetButton, closeButton, readout;
+  let dialog, viewport, image, heading, message, zoomButton, resetButton, closeButton, readout, retryButton;
   let observer, opened = false, destroyed = false, trigger = null, bodyOverflow = '', request = 0;
   let scale = 1, x = 0, y = 0, frame = 0, boxWidth = 0, boxHeight = 0, fitWidth = 0, fitHeight = 0;
+  let currentSource = '', requestedFocus = null;
   let drag = null, lastTap = null, lastTouch = 0, multiplePointers = false;
   const pointers = new Set();
   const listen = (target, type, handler, options = {}) => target.addEventListener(type, handler, { ...options, signal: events.signal });
@@ -95,7 +96,7 @@
     dialog = document.createElement('dialog');
     dialog.className = 'taihao-image-viewer';
     dialog.setAttribute('aria-labelledby', 'taihao-image-viewer-title');
-    dialog.innerHTML = `<div class="tv-shell"><header class="tv-header"><h2 id="taihao-image-viewer-title"></h2><div class="tv-actions"><button type="button" class="tv-button tv-zoom" aria-label="放大图片">＋ 放大</button><button type="button" class="tv-button tv-reset" aria-label="复位图片">复位</button><button type="button" class="tv-button tv-close" aria-label="关闭大图，返回原注解">×</button></div></header><div class="tv-viewport"><img class="tv-image" draggable="false" decoding="async" alt=""><p class="tv-message" role="status"></p></div><footer class="tv-footer"><span class="tv-hint">双击放大 · 放大后拖动查看</span><output class="tv-scale" aria-label="图片缩放比例">100%</output></footer></div>`;
+    dialog.innerHTML = `<div class="tv-shell"><header class="tv-header"><h2 id="taihao-image-viewer-title"></h2><div class="tv-actions"><button type="button" class="tv-button tv-zoom" aria-label="放大图片">＋ 放大</button><button type="button" class="tv-button tv-reset" aria-label="复位图片">复位</button><button type="button" class="tv-button tv-close" aria-label="关闭大图，返回原注解">×</button></div></header><div class="tv-viewport"><img class="tv-image" draggable="false" decoding="async" alt=""><p class="tv-message" role="status"></p><button type="button" class="tv-button tv-retry" hidden>重新加载图片</button></div><footer class="tv-footer"><span class="tv-hint">双击放大 · 放大后拖动查看</span><output class="tv-scale" aria-label="图片缩放比例">100%</output></footer></div>`;
     viewport = dialog.querySelector('.tv-viewport');
     image = dialog.querySelector('.tv-image');
     heading = dialog.querySelector('h2');
@@ -104,10 +105,12 @@
     resetButton = dialog.querySelector('.tv-reset');
     closeButton = dialog.querySelector('.tv-close');
     readout = dialog.querySelector('.tv-scale');
+    retryButton = dialog.querySelector('.tv-retry');
     document.body.append(dialog);
     listen(closeButton, 'click', () => close());
     listen(zoomButton, 'click', () => zoom(scale + 0.5));
     listen(resetButton, 'click', reset);
+    listen(retryButton, 'click', loadImage);
     listen(dialog, 'cancel', event => { event.preventDefault(); close(); });
     listen(dialog, 'close', () => { if (opened && !dialog.open) close(); });
     listen(dialog, 'click', event => { if (event.target === dialog) close(); });
@@ -142,7 +145,62 @@
       observer.observe(viewport);
     } else listen(window, 'resize', measureOnce, { passive: true });
   }
-  function open({ src, alt = '', title = '完整场景图', trigger: source } = {}) {
+  function normalizedFocus(value) {
+    if (!value || !Number.isFinite(value.x) || !Number.isFinite(value.y)) return null;
+    return { x: limit(value.x, 0, 100), y: limit(value.y, 0, 100), scale: limit(Number.isFinite(value.scale) ? value.scale : 2.5, 1, 3) };
+  }
+  function focusRequestedArea() {
+    if (!requestedFocus || !fitWidth) return;
+    scale = requestedFocus.scale;
+    x = -(requestedFocus.x / 100 - 0.5) * fitWidth * scale;
+    y = -(requestedFocus.y / 100 - 0.5) * fitHeight * scale;
+    clampPan();
+    updateControls();
+    schedule();
+  }
+  function loadImage() {
+    if (!opened || !currentSource) return;
+    const token = ++request;
+    const keepRetry = !retryButton.hidden;
+    releaseDrag();
+    pointers.clear();
+    multiplePointers = false;
+    lastTap = null;
+    scale = 1; x = y = 0; fitWidth = fitHeight = 0;
+    image.onload = image.onerror = null;
+    image.removeAttribute('src');
+    message.textContent = '正在载入图片…';
+    retryButton.hidden = !keepRetry;
+    retryButton.disabled = true;
+    dialog.classList.add('is-loading');
+    dialog.classList.remove('has-error');
+    image.onload = () => {
+      if (!opened || token !== request) return;
+      const retryFocused = document.activeElement === retryButton;
+      dialog.classList.remove('is-loading');
+      message.textContent = '';
+      retryButton.hidden = true;
+      retryButton.disabled = false;
+      measureOnce();
+      focusRequestedArea();
+      if (retryFocused) (resetButton.disabled ? zoomButton : resetButton).focus({ preventScroll: true });
+    };
+    image.onerror = () => {
+      if (!opened || token !== request) return;
+      dialog.classList.remove('is-loading');
+      dialog.classList.add('has-error');
+      message.textContent = '图片暂时无法加载，请重试。';
+      retryButton.hidden = false;
+      retryButton.disabled = false;
+      fitWidth = fitHeight = 0;
+      updateControls();
+    };
+    image.src = currentSource;
+    updateControls();
+    schedule();
+    measureOnce();
+  }
+  function open({ src, alt = '', title = '完整场景图', trigger: source, focus: targetFocus } = {}) {
     if (destroyed || typeof src !== 'string' || !src.trim()) return false;
     mount();
     const alreadyOpen = opened;
@@ -153,36 +211,12 @@
       opened = true;
       dialog.showModal();
     } else if (source instanceof HTMLElement) trigger = source;
-    const token = ++request;
-    releaseDrag();
-    pointers.clear();
-    multiplePointers = false;
-    lastTap = null;
-    scale = 1; x = y = 0; fitWidth = fitHeight = 0;
+    currentSource = src;
+    requestedFocus = normalizedFocus(targetFocus);
     heading.textContent = title;
     image.alt = alt || title;
-    image.removeAttribute('src');
-    message.textContent = '正在载入图片…';
-    dialog.classList.add('is-loading');
-    dialog.classList.remove('has-error');
-    image.onload = () => {
-      if (!opened || token !== request) return;
-      dialog.classList.remove('is-loading');
-      message.textContent = '';
-      measureOnce();
-    };
-    image.onerror = () => {
-      if (!opened || token !== request) return;
-      dialog.classList.remove('is-loading');
-      dialog.classList.add('has-error');
-      message.textContent = '图片暂时无法加载';
-      fitWidth = fitHeight = 0;
-      updateControls();
-    };
-    image.src = src;
-    updateControls();
-    schedule();
-    measureOnce();
+    retryButton.hidden = true;
+    loadImage();
     if (!alreadyOpen) {
       closeButton.focus({ preventScroll: true });
       emit(true);

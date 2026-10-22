@@ -26,3 +26,6 @@
 @media(max-width:580px){.taihao-image-viewer{width:calc(100vw - 16px);height:calc(100svh - 24px);border-radius:8px}.taihao-image-viewer .tv-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px}.taihao-image-viewer h2{grid-column:1/-1;font-size:15px}.taihao-image-viewer .tv-actions{grid-column:1/-1;justify-content:flex-end}.taihao-image-viewer .tv-footer{padding:8px 10px;font-size:10px}.taihao-image-viewer .tv-button{font-size:12px}.taihao-image-viewer .tv-close{font-size:26px}}
 @media(max-height:480px) and (min-width:581px){.taihao-image-viewer{height:calc(100svh - 16px);width:calc(100vw - 24px)}.taihao-image-viewer .tv-header{padding:6px 10px;gap:12px}.taihao-image-viewer h2{font-size:14px}.taihao-image-viewer .tv-footer{padding:4px 10px;font-size:10px}}
 @media(prefers-reduced-motion:reduce){.taihao-image-viewer .tv-shell{animation:none}.taihao-image-viewer .tv-image{transition:none}}
+/* A failed request can retry the same image and annotation focus in place. */
+.taihao-image-viewer .tv-retry{position:absolute;top:calc(50% + 32px);left:50%;transform:translateX(-50%);white-space:nowrap}
+.taihao-image-viewer .tv-retry[hidden]{display:none}

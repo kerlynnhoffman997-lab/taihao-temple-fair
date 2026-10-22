@@ -117,10 +117,10 @@ extrasScheduled=true;const work=()=>{extrasScheduled=false;if(!pageActive||docum
 if(window.requestIdleCallback)requestIdleCallback(work,{timeout:1500});else setTimeout(work,150);
 }
 function loadPhoto(index){return new Promise(resolve=>{
-const img=new Image();img.decoding='async';img.fetchPriority=index===2?'high':priority.includes(index)?'auto':'low';
+const img=new Image(),source='assets/home/optimized/home-'+String(index+1).padStart(2,'0');let triedJpeg=false;img.decoding='async';img.fetchPriority=index===2?'high':priority.includes(index)?'auto':'low';
 img.onload=async()=>{let texture=null;try{if(img.decode)await img.decode().catch(()=>{});if(img.naturalWidth)texture=photoTexture(img)}catch(_){}img.onload=null;img.onerror=null;resolve(texture)};
-img.onerror=()=>{img.onload=null;img.onerror=null;resolve(null)};
-img.src='assets/home/home-'+String(index+1).padStart(2,'0')+'.jpg';
+img.onerror=()=>{if(!triedJpeg){triedJpeg=true;img.src=source+'.jpg';return}img.onload=null;img.onerror=null;resolve(null)};
+img.src=source+'.webp';
 })}
 function pumpPhotos(){
 if(!pageActive||document.hidden||departing)return;

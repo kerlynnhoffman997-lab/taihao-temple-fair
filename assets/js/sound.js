@@ -26,13 +26,13 @@
   let generation = 0, lastCueAt = -Infinity;
   const available = () => typeof window.Howl === 'function' && !(window.Howler && window.Howler.noAudio);
   const suspended = () => manualSuspended || hidden;
-  const canPlay = () => enabled && !suspended() && available() && !failed;
+  const canPlay = (name = activeName) => (enabled || name === 'preview') && !suspended() && available() && !failed;
   const isDucked = () => manualDuck || videoDuck;
   const gain = () => volume * (activeName === 'preview' ? .65 : 1) * (isDucked() ? .15 : 1);
   function getState() {
     const playing = !!(bank && activeId !== null && bank.playing(activeId));
     return Object.freeze({enabled,preferredEnabled,volume,available:available() && !failed,suspended:suspended(),ducked:isDucked(),
-      playing,active:activeName,pending:pendingName,status:!available() || failed ? 'unavailable' : !enabled ? 'disabled' : suspended() ? 'suspended' : pendingName ? 'loading' : playing ? 'playing' : 'ready'});
+      playing,active:activeName,pending:pendingName,status:!available() || failed ? 'unavailable' : suspended() ? 'suspended' : pendingName ? 'loading' : playing ? 'playing' : enabled ? 'ready' : 'disabled'});
   }
   function notify() { document.dispatchEvent(new CustomEvent('taihao:soundchange',{detail:getState()})); }
   function persist() { try { localStorage.setItem(storageKey,JSON.stringify({enabled:preferredEnabled,volume})); } catch (_) {} }
@@ -70,7 +70,7 @@
   function setEnabled(value) {
     const next = value === true;
     preferredEnabled = next;persist();
-    if (!next) { enabled = false;stop();return false; }
+    if (!next) { enabled = false;if(activeName==='preview'||pendingName==='preview')notify();else stop();return false; }
     if (failed && bank) { try { bank.unload(); } catch (_) {} bank = null; }
     failed = false;
     enabled = available();
@@ -79,7 +79,8 @@
   }
   function playCue(name = 'tap') {
     name = aliases[name] || name;
-    if (!Object.prototype.hasOwnProperty.call(sprites,name) || !canPlay()) return false;
+    if (!Object.prototype.hasOwnProperty.call(sprites,name) || !canPlay(name)) return false;
+    if(name!=='preview'&&(activeName==='preview'||pendingName==='preview'))return false;
     const now = Date.now();
     if (now - lastCueAt < 120) return false;
     lastCueAt = now;
@@ -87,7 +88,7 @@
     const current = ensureBank();if (!current) return false;
     const ticket = generation;
     const start = () => {
-      if (ticket !== generation || !canPlay()) return;
+      if (ticket !== generation || !canPlay(name)) return;
       pendingLoad = null;pendingName = null;
       current.volume(0);activeName = name;
       activeId = current.play(name);
@@ -110,8 +111,12 @@
   function suspend() { manualSuspended = true;stop();return getState(); }
   function resume() { manualSuspended = false;notify();return getState(); }
   function duck(on) { manualDuck = on === true;syncVideoDuck();fadeToCurrent();notify();return isDucked(); }
+  function preview(){
+    if(failed){try{bank?.unload()}catch(_){}bank=null;failed=false;}
+    return playCue('preview');
+  }
   const api = {enable:() => setEnabled(true),toggle:() => setEnabled(!enabled),setEnabled,setVolume,playCue,
-    preview:() => playCue('preview'),suspend,resume,stop,duck,getState};
+    preview,suspend,resume,stop,duck,getState};
   for (const key of ['enabled','preferredEnabled','volume','available','suspended','ducked','playing','active','status']) {
     Object.defineProperty(api,key,{enumerable:true,get:() => getState()[key]});
   }
