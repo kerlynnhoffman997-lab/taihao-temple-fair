@@ -41,3 +41,9 @@ License: MIT; complete original notice: assets/vendor/howler-2.2.4.LICENSE.txt
 
 The sound sprite in assets/audio/taihao-soft-cues.wav is original mathematical
 synthesis for this project, not a field recording. See SYNTHESIS-NOTICE.txt.
+
+Embla Carousel 8.6.0
+Repository: https://github.com/davidjerleke/embla-carousel/tree/v8.6.0
+Local file: assets/vendor/embla-carousel.umd.js
+License: MIT; complete original notice: assets/vendor/embla-license.txt
+Used for the swipeable, keyboard-accessible manual station navigator.

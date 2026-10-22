@@ -298,6 +298,8 @@
   }
 </style>
 <link rel="stylesheet" href="map-experience.css?v=refine2">
+<link rel="stylesheet" href="route-navigation.css?v=tour1">
+<link rel="stylesheet" href="tour-experience.css?v=tour1">
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -456,6 +458,7 @@ for (const type of ['pageswap','pagereveal']) {
 
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/motion-mini.js"></script><script src="assets/js/motion-ui.js"></script>
+<script src="assets/vendor/embla-carousel.umd.js"></script><script src="assets/js/route-navigation.js"></script>
 <script src="assets/vendor/howler.core-2.2.4.min.js"></script><script src="assets/js/sound.js"></script>
 <script>
 /* ================= 底图与版画插画 ================= */
@@ -673,66 +676,73 @@ const hotlayer= document.getElementById('hotlayer');
 document.getElementById('mapimg').src = MAP_SRC;
 document.getElementById('miniImg').setAttribute('href', MAP_SRC);
 
-// A single camera drives gestures, keyboard and navigation in map coordinates.
+// Cache geometry and label measurements; camera frames write only transforms.
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const isPhone=()=>matchMedia('(max-width:680px)').matches;
 let view={x:0,y:0,k:isPhone()?1.95:1},S=1,OX=0,OY=0;
-let cameraFrame=0,finishCamera=null,labelFrame=0,mapGesture=false;
-const mapFit=()=>Math.min(mapview.clientWidth/VW,mapview.clientHeight/VH)*.96;
+let cameraFrame=0,finishCamera=null,labelFrame=0,mapGesture=false,cameraMoving=false,labelMetricsDirty=true,lastHotScale=0;
+const mapMetrics={cw:0,ch:0,fit:1},hotRecords=[];
+const tourPerf={cameraFrames:0,labelLayouts:0,labelMeasures:0,decodeRequests:0,sceneChanges:0};
+function measureMap(){const cw=mapview.clientWidth,ch=mapview.clientHeight;mapMetrics.cw=cw;mapMetrics.ch=ch;mapMetrics.fit=Math.min(cw/VW,ch/VH)*.96;labelMetricsDirty=true}
+measureMap();
+const mapFit=()=>mapMetrics.fit;
 function boundCamera(){
- view.k=Math.max(.9,Math.min(4.5,view.k));const s=mapFit()*view.k,cw=mapview.clientWidth,ch=mapview.clientHeight;
+ view.k=Math.max(.9,Math.min(4.5,view.k));const s=mapFit()*view.k,{cw,ch}=mapMetrics;
  const bx=Math.max(0,(VW*s-cw)/2),by=Math.max(0,(VH*s-ch)/2);
  view.x=Math.max(-bx-24,Math.min(bx+24,view.x));view.y=Math.max(-by-24,Math.min(by+24,view.y));
 }
 const labelPriority=['q1','q6','q9','q4','f2','f4','q2','q8','e1','w1','f1','f3'];
+function queueLabels(){if(!labelFrame&&!cameraMoving&&!mapGesture&&state.level==='map')labelFrame=requestAnimationFrame(updateLabels)}
 function updateLabels(){
- labelFrame=0;const cw=mapview.clientWidth,ch=mapview.clientHeight,rects=[];
- const mapRect=mapview.getBoundingClientRect();
- const reserved=[...mapview.querySelectorAll('.map-caption,.map-controls,.legend,#tilebar')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return{l:r.left-mapRect.left,t:r.top-mapRect.top,r:r.right-mapRect.left,b:r.bottom-mapRect.top}});
- const dots=POIS.filter(p=>!document.getElementById('hot-'+p.id)?.classList.contains('hide')).map(p=>({id:p.id,x:OX+p.px*S,y:OY+p.py*S}));
- const max=isPhone()?(view.k>2.5?8:6):(view.k>1.6?17:13);
- const ranked=[...hotlayer.querySelectorAll('.hot')].sort((a,b)=>{
-  const score=e=>e.matches(':focus,:hover,.active')?-100:(labelPriority.indexOf(e.dataset.id)<0?99:labelPriority.indexOf(e.dataset.id));return score(a)-score(b);
- });
- for(const el of ranked){
-  const p=POIS.find(p=>p.id===el.dataset.id),lab=el.querySelector('.lab');
-  const x=OX+p.px*S,y=OY+p.py*S,w=lab.offsetWidth||100,h=lab.offsetHeight||30,force=el.matches(':focus,:hover,.active');let found=null;
+ labelFrame=0;if(cameraMoving||mapGesture||state.level!=='map')return;
+ tourPerf.labelLayouts++;const{cw,ch}=mapMetrics,rects=[];
+ // Collect layout reads before changing any label class or style.
+ const base=mapview.getBoundingClientRect();
+ const reserved=[...mapview.querySelectorAll('.map-caption,.map-controls,.legend,#tilebar')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden').map(e=>{const r=e.getBoundingClientRect();return{l:r.left-base.left,t:r.top-base.top,r:r.right-base.left,b:r.bottom-base.top}});
+ if(labelMetricsDirty){for(const r of hotRecords){r.width=r.lab.offsetWidth||100;r.height=r.lab.offsetHeight||30}labelMetricsDirty=false;tourPerf.labelMeasures++}
+ const dots=hotRecords.filter(r=>!r.el.classList.contains('hide')).map(r=>({id:r.p.id,x:OX+r.p.px*S,y:OY+r.p.py*S}));
+ const max=isPhone()?(view.k>2.5?8:6):(view.k>1.6?17:13),focus=document.activeElement;
+ const ranked=hotRecords.map(r=>({...r,force:r.el===focus||r.el.matches(':hover')||r.el.classList.contains('active')})).sort((a,b)=>(a.force?-100:a.priority)-(b.force?-100:b.priority));
+ const placements=[];
+ for(const r of ranked){
+  const{p,el,width:w,height:h,force}=r,x=OX+p.px*S,y=OY+p.py*S;let found=null;
   if(!el.classList.contains('hide')&&(rects.length<max||force))for(const[dx,dy]of[[p.lx*.62,p.ly*.62],[0,-33],[0,33],[w/2+23,0],[-w/2-23,0]]){
-   const r={l:x+dx-w/2,t:y+dy-h/2,r:x+dx+w/2,b:y+dy+h/2};
-   if(r.l<8||r.r>cw-8||r.t<8||r.b>ch-14||(r.r>cw-66&&r.t<164))continue;
-   if(reserved.some(q=>r.l<q.r+5&&r.r>q.l-5&&r.t<q.b+5&&r.b>q.t-5))continue;
-   if(dots.some(q=>q.id!==p.id&&q.x>r.l-10&&q.x<r.r+10&&q.y>r.t-10&&q.y<r.b+10))continue;
-   if(rects.some(q=>r.l<q.r+7&&r.r>q.l-7&&r.t<q.b+7&&r.b>q.t-7))continue;
-   found={dx,dy,r};break;
+   const box={l:x+dx-w/2,t:y+dy-h/2,r:x+dx+w/2,b:y+dy+h/2};
+   if(box.l<8||box.r>cw-8||box.t<8||box.b>ch-14)continue;
+   if(reserved.some(q=>box.l<q.r+5&&box.r>q.l-5&&box.t<q.b+5&&box.b>q.t-5))continue;
+   if(dots.some(q=>q.id!==p.id&&q.x>box.l-10&&q.x<box.r+10&&q.y>box.t-10&&q.y<box.b+10))continue;
+   if(rects.some(q=>box.l<q.r+7&&box.r>q.l-7&&box.t<q.b+7&&box.b>q.t-7))continue;
+   found={dx,dy,box};break;
   }
-  el.classList.toggle('label-visible',!!found);
-  if(found){el.style.setProperty('--lx',found.dx+'px');el.style.setProperty('--ly',found.dy+'px');rects.push(found.r)}
+  placements.push({el,found});if(found)rects.push(found.box);
  }
+ for(const{el,found}of placements){el.classList.toggle('label-visible',!!found);if(found){el.style.setProperty('--lx',found.dx+'px');el.style.setProperty('--ly',found.dy+'px')}}
 }
 function layout(){
- const cw=mapview.clientWidth,ch=mapview.clientHeight;if(!cw||!ch)return;
- boundCamera();S=mapFit()*view.k;OX=(cw-VW*S)/2+view.x;OY=(ch-VH*S)/2+view.y;
- wrap.style.transform=`translate(${OX}px,${OY}px) scale(${S})`;
- hotlayer.querySelectorAll('.hot').forEach(el=>el.style.transform=`scale(${1/S}) translate(-22px,-22px)`);
- const mr=document.getElementById('miniRect');mr.setAttribute('x',Math.max(0,-OX/S));mr.setAttribute('y',Math.max(0,-OY/S));
- mr.setAttribute('width',Math.min(VW,cw/S));mr.setAttribute('height',Math.min(VH,ch/S));
+ const{cw,ch}=mapMetrics;if(!cw||!ch)return;boundCamera();S=mapFit()*view.k;OX=(cw-VW*S)/2+view.x;OY=(ch-VH*S)/2+view.y;
+ wrap.style.transform=`translate3d(${OX}px,${OY}px,0) scale(${S})`;
+ if(Math.abs(S-lastHotScale)>.00001){for(const r of hotRecords)r.el.style.transform=`scale(${1/S}) translate(-22px,-22px)`;lastHotScale=S}
+ const mr=document.getElementById('miniRect');mr.setAttribute('x',Math.max(0,-OX/S));mr.setAttribute('y',Math.max(0,-OY/S));mr.setAttribute('width',Math.min(VW,cw/S));mr.setAttribute('height',Math.min(VH,ch/S));
  document.getElementById('zoomOut').disabled=view.k<=.901;document.getElementById('zoomIn').disabled=view.k>=4.499;
- if(!labelFrame)labelFrame=requestAnimationFrame(updateLabels);
+ queueLabels();
 }
 const apply=layout;
 function toMap(cx,cy){const r=mapview.getBoundingClientRect();return[(cx-r.left-OX)/S,(cy-r.top-OY)/S]}
 function targetFor(p,k){const s=mapFit()*k;return{x:(VW/2-p.px)*s,y:(VH/2-p.py)*s,k}}
-function cancelCamera(){cancelAnimationFrame(cameraFrame);cameraFrame=0;if(finishCamera){finishCamera(false);finishCamera=null}}
-function moveCamera(target,duration=.48){
+function setCameraMoving(on){cameraMoving=on;mapview.classList.toggle('is-camera-moving',on);if(on){cancelAnimationFrame(labelFrame);labelFrame=0}else queueLabels()}
+function cancelCamera(){cancelAnimationFrame(cameraFrame);cameraFrame=0;if(finishCamera){finishCamera(false);finishCamera=null}setCameraMoving(false)}
+function moveCamera(target,duration=.38){
  cancelCamera();if(reducedMotion.matches||duration===0){Object.assign(view,target);apply();return Promise.resolve(true)}
+ setCameraMoving(true);
  return new Promise(resolve=>{finishCamera=resolve;const from={...view},start=performance.now();
-  function tick(now){const t=Math.min(1,(now-start)/(duration*1000)),e=1-Math.pow(1-t,3);
+  function tick(now){const t=Math.min(1,(now-start)/(duration*1000)),e=1-Math.pow(1-t,3);tourPerf.cameraFrames++;
    for(const key of['x','y','k'])view[key]=from[key]+(target[key]-from[key])*e;apply();
-   if(t<1)cameraFrame=requestAnimationFrame(tick);else{cameraFrame=0;finishCamera=null;resolve(true)}
+   if(t<1)cameraFrame=requestAnimationFrame(tick);else{cameraFrame=0;finishCamera=null;setCameraMoving(false);resolve(true)}
   }cameraFrame=requestAnimationFrame(tick);
  });
 }
-function centerOn(p,k=1.7,dur=.55){return moveCamera(targetFor(p,k),dur)}
+function centerOn(p,k=1.7,dur=.38){return moveCamera(targetFor(p,k),dur)}
+
 function zoomAt(factor,cx,cy){
  const r=mapview.getBoundingClientRect();cx=cx??r.left+r.width/2;cy=cy??r.top+r.height/2;
  const[u,v]=toMap(cx,cy),k=Math.max(.9,Math.min(4.5,view.k*factor)),s=mapFit()*k;
@@ -750,7 +760,7 @@ function seedGesture(){
 }
 mapview.addEventListener('pointerdown',e=>{
  if(e.button!==0||e.target.closest('button:not(.hot),input,#tilebar,#timebar,#calbox,.legend'))return;
- cancelCamera();if(!pointers.size)lastMoved=0;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ cancelCamera();setCameraMoving(true);if(!pointers.size)lastMoved=0;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
  (e.target.closest('.hot')||mapview).setPointerCapture(e.pointerId);seedGesture();
 });
 mapview.addEventListener('pointermove',e=>{
@@ -765,7 +775,7 @@ mapview.addEventListener('pointermove',e=>{
  }
  mapGesture=lastMoved>6;mapview.classList.toggle('is-dragging',mapGesture);apply();
 });
-function endPointer(e){pointers.delete(e.pointerId);seedGesture();if(!pointers.size){mapGesture=false;mapview.classList.remove('is-dragging')}}
+function endPointer(e){pointers.delete(e.pointerId);seedGesture();if(!pointers.size){mapGesture=false;mapview.classList.remove('is-dragging');setCameraMoving(false)}}
 for(const type of['pointerup','pointercancel','lostpointercapture'])mapview.addEventListener(type,endPointer);
 document.getElementById('btnReset').onclick=async()=>{stopTour();await closeDetail();moveCamera({x:0,y:0,k:isPhone()?1.95:1})};
 document.getElementById('zoomIn').onclick=()=>zoomAt(1.3);document.getElementById('zoomOut').onclick=()=>zoomAt(1/1.3);
@@ -782,6 +792,7 @@ mini.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDe
 
 /* ================= 呼吸光点（百分比定位） ================= */
 function renderHotspots() {
+  hotRecords.length=0;labelMetricsDirty=true;lastHotScale=0;
   hotlayer.innerHTML = POIS.map((p, i) => {
     const c = CAT[p.cat].color;
     return `<button type="button" class="hot" id="hot-${p.id}" data-id="${p.id}" data-cat="${p.cat}" aria-label="探索${p.name}"
@@ -794,6 +805,7 @@ function renderHotspots() {
   }).join('');
   hotlayer.querySelectorAll('.hot').forEach(el => {
     const p = POIS.find(q => q.id === el.dataset.id);
+    const priority=labelPriority.indexOf(p.id);hotRecords.push({p,el,lab:el.querySelector('.lab'),width:0,height:0,priority:priority<0?99:priority});
     el.addEventListener('click',ev=>{
       ev.stopPropagation();if(ev.detail&&lastMoved>6)return;
       let chosen=p;
@@ -803,7 +815,7 @@ function renderHotspots() {
       }
       openDetail(chosen);
     });
-    for(const event of ['focus','blur','pointerenter','pointerleave'])el.addEventListener(event,()=>{if(!mapGesture)updateLabels()});
+    for(const event of ['focus','blur','pointerenter','pointerleave'])el.addEventListener(event,()=>{queueLabels()});
   });
   layout(); syncStamps(); applyLayers();
 }
@@ -829,7 +841,7 @@ function applyLayers() {
   document.getElementById('trail').setAttribute('visibility',
     (tourOn ? 'visible' : 'hidden'));
   refreshHeat();
-  if(!labelFrame)labelFrame=requestAnimationFrame(updateLabels);
+  queueLabels();
 }
 function refreshHeat() {
   const v = heatI(curDay);
@@ -891,14 +903,48 @@ const dsubs  = document.getElementById('dsubs');
 const pop    = document.getElementById('pop');
 const state  = { level:'map', cur:null };
 
-function fillMedia(p){
-  if (ART[p.id]) {
-    dmedia.innerHTML = `<img src="${ART[p.id]}" alt="${p.name}">`;
-  } else {                                   /* 无版画素材：用底图放大到该点位 = 真实“走近” */
-    dmedia.innerHTML = `<img class="mapcrop" id="mapcrop" src="${MAP_SRC}" alt="${p.name}">`;
-    layoutDetail();
-  }
+const pointImageCache=new Map();let currentFrame=null,sceneFade=null,preloadTimer=0,wantedMedia='';
+function trimPointImages(){
+ if(pointImageCache.size<=6)return;
+ for(const[key,entry]of pointImageCache){if(pointImageCache.size<=6)break;if(!entry.image.isConnected&&entry.status!=='loading'&&key!==wantedMedia)pointImageCache.delete(key)}
 }
+async function loadPointImage(p,{warm=false}={}){
+ const src=ART[p.id];if(!src)return null;if(!warm)wantedMedia=src;
+ let entry=pointImageCache.get(src);
+ if(!entry){
+  const image=new Image();image.decoding='async';image.fetchPriority=warm?'low':'high';image.src=src;
+  entry={image,status:'loading',promise:null};pointImageCache.set(src,entry);tourPerf.decodeRequests++;
+  entry.promise=image.decode().then(()=>{entry.status='ready';trimPointImages();return image},()=>{entry.status='failed';trimPointImages();return null});
+ }else{pointImageCache.delete(src);pointImageCache.set(src,entry)}
+ return Promise.race([entry.promise,wait(warm?2200:1600).then(()=>null)]);
+}
+function warmPointNeighbours(p){
+ clearTimeout(preloadTimer);if(navigator.connection?.saveData||/2g/.test(navigator.connection?.effectiveType||''))return;
+ const sequence=routeActive?AXIS:SEQ,index=sequence.indexOf(p);
+ preloadTimer=setTimeout(()=>{if(document.hidden)return;for(const i of[index+1,index-1])if(sequence[i])loadPointImage(sequence[i],{warm:true})},100);
+}
+function finishPictureFade(){
+ if(sceneFade){sceneFade.cancel?.();sceneFade=null}
+ if(currentFrame){currentFrame.style.opacity='1';for(const image of [...dmedia.children])if(image!==currentFrame)image.remove()}
+}
+function fillMedia(p,{crossfade=false}={}){
+ finishPictureFade();const previous=currentFrame,entry=pointImageCache.get(ART[p.id]);
+ let image=entry?.status==='ready'?entry.image:null;
+ if(image){image.className='scene-photo';image.removeAttribute('id');image.alt=p.name}
+ else{image=new Image();image.className='mapcrop';image.id='mapcrop';image.alt=p.name+' · 地图局部';image.src=MAP_SRC}
+ if(previous===image){layoutDetail();return Promise.resolve()}
+ previous?.removeAttribute('id');currentFrame=image;tourPerf.sceneChanges++;
+ if(crossfade&&previous?.isConnected&&!reducedMotion.matches){
+  image.style.opacity='0';dmedia.append(image);layoutDetail();
+  try{
+   const controls=window.Motion?.animate?Motion.animate(image,{opacity:[0,1]},{duration:.2,ease:'easeOut'}):image.animate([{opacity:0},{opacity:1}],{duration:200,easing:'ease-out',fill:'both'});
+   sceneFade=controls;const done=controls.finished||controls;
+   return Promise.resolve(done).catch(()=>{}).then(()=>{if(currentFrame===image){image.style.opacity='1';controls.cancel?.();if(sceneFade===controls)sceneFade=null;previous.remove()}});
+  }catch{image.style.opacity='1';previous.remove()}
+ }else{image.style.opacity='1';dmedia.replaceChildren(image);layoutDetail()}
+ return Promise.resolve();
+}
+
 function layoutDetail(){
   const el = document.getElementById('mapcrop'); if (!el || !state.cur) return;
   const box = dmedia.getBoundingClientRect(); if (!box.width) return;
@@ -1011,17 +1057,13 @@ function highlight(p) {
     el.classList.toggle('active', el.dataset.id === p.id));
 }
 let detailToken=0,returnView=null,returnFocus=null;
-async function loadPointImage(p){
- if(!ART[p.id])return;const image=new Image();image.src=ART[p.id];
- try{await Promise.race([image.decode(),wait(1800)])}catch{}
-}
 async function openDetail(p,{fromTour=false}={}){
- if(!fromTour)stopTourForReading();
+ if(!fromTour){stopTourForReading();if(routeActive){const index=AXIS.indexOf(p);if(index>=0){routeIndex=index;routeUI.select(index,{silent:true})}else endRouteNavigation()}}
  if(state.level==='detail')return swapDetail(p);
  const token=++detailToken;if(state.level==='map'){returnView={...view};returnFocus=document.activeElement}
  state.level='opening';state.cur=p;cardTab='习俗';highlight(p);
  document.getElementById('mapCaption').textContent='走近 · '+p.name;window.TaihaoSound?.playCue('point');
- await Promise.all([loadPointImage(p),centerOn(p,Math.max(view.k,isPhone()?2.3:1.7),.42)]);
+ await Promise.all([loadPointImage(p),centerOn(p,Math.max(view.k,isPhone()?2.3:1.7),.32)]);
  if(token!==detailToken)return;
  const r=mapview.getBoundingClientRect(),sx=r.left+OX+p.px*S,sy=r.top+OY+p.py*S;
  scene.style.transformOrigin=`${sx-r.left}px ${sy-r.top}px`;
@@ -1030,22 +1072,25 @@ async function openDetail(p,{fromTour=false}={}){
  detailview.classList.remove('out','fading');detailview.style.display='block';
  document.querySelector('.stage').classList.add('has-detail');mapview.inert=true;
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-  if(token!==detailToken)return;detailview.classList.add('in');mapview.classList.add('pushing');layoutDetail();document.getElementById('dcardClose').focus({preventScroll:true});
- }));renderCaps();return wait(reducedMotion.matches?0:400);
+  if(token!==detailToken)return;detailview.classList.add('in');mapview.classList.add('pushing');layoutDetail();if(!fromTour)document.getElementById('dcardClose').focus({preventScroll:true});
+ }));renderCaps();warmPointNeighbours(p);return wait(reducedMotion.matches?0:240);
 }
 async function swapDetail(p){
- const token=++detailToken;hidePop();detailview.classList.add('fading');window.TaihaoSound?.playCue('point');
- await Promise.all([loadPointImage(p),wait(reducedMotion.matches?0:160)]);if(token!==detailToken)return;
- state.level='detail';state.cur=p;cardTab='习俗';fillMedia(p);fillSubs(p);fillCard(p);highlight(p);
- document.getElementById('dtagbig').textContent=p.name;detailview.classList.remove('fading');layoutDetail();renderCaps();
+ const token=++detailToken;hidePop();window.TaihaoSound?.playCue('point');
+ await loadPointImage(p);if(token!==detailToken)return false;
+ state.level='detail';state.cur=p;cardTab='习俗';
+ const fading=fillMedia(p,{crossfade:true});fillSubs(p);fillCard(p);highlight(p);
+ document.getElementById('dtagbig').textContent=p.name;detailview.classList.remove('fading');renderCaps();
+ document.getElementById('dcard').scrollTop=0;document.getElementById('dcardBody').scrollTop=0;
+ warmPointNeighbours(p);await fading;return token===detailToken;
 }
 async function closeDetail({fromTour=false}={}){
- if(!fromTour&&touring)stopTour();if(state.level==='map')return;
- ++detailToken;hidePop();window.TaihaoSound?.stop();
+ if(!fromTour&&routeActive)endRouteNavigation();if(state.level==='map')return;
+ ++detailToken;hidePop();finishPictureFade();window.TaihaoSound?.stop();
  detailview.classList.remove('in','fading');detailview.classList.add('out');mapview.classList.remove('pushing');mapview.inert=false;
  document.querySelector('.stage').classList.remove('has-detail');const token=detailToken;state.level='map';state.cur=null;highlight({id:null});renderCaps();
- document.getElementById('mapCaption').textContent='查找24处点位 →';if(returnView)moveCamera(returnView,.45);
- await wait(reducedMotion.matches?0:360);if(token!==detailToken)return;
+ document.getElementById('mapCaption').textContent='查找24处点位 →';if(returnView)moveCamera(returnView,.32);
+ await wait(reducedMotion.matches?0:280);if(token!==detailToken)return;
  detailview.classList.remove('out');detailview.style.display='none';if(returnFocus?.isConnected&&returnFocus.getClientRects().length&&!returnFocus.closest('[hidden],[inert]'))returnFocus.focus({preventScroll:true});else mapview.focus({preventScroll:true});returnView=null;
 }
 
@@ -1082,6 +1127,7 @@ window.addEventListener('keydown', e => {
   if(atlas.classList.contains('show')||!moreTools.hidden||pop.classList.contains('show'))return;
   if (state.level === 'detail' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     stopTourForReading();
+    if(routeActive){e.preventDefault();routeUI.select(routeIndex+(e.key==='ArrowRight'?1:-1));return}
     const i = SEQ.indexOf(state.cur);
     const t = SEQ[i + (e.key === 'ArrowRight' ? 1 : -1)];
     if (t) swapDetail(t);
@@ -1227,48 +1273,69 @@ document.addEventListener('taihao:soundchange',syncSoundUI);syncSoundUI();
 
 /* ================= 动画工具（GSAP 优先，断网回退 rAF） ================= */
 const hasGsap = typeof window.gsap !== 'undefined';
-function tween(obj, props, dur, ease = 'power2.inOut'){
-  if(reducedMotion.matches){for(const k of Object.keys(props))if(k!=='onUpdate')obj[k]=props[k];props.onUpdate?.();return Promise.resolve()}
-  return new Promise(res => {
-    if (hasGsap) gsap.to(obj, { ...props, duration: dur, ease, onComplete: res });
-    else {
-      const keys = Object.keys(props).filter(k => k !== 'onUpdate'), from = {}, to = {};
-      keys.forEach(k => { from[k] = obj[k]; to[k] = props[k]; });
-      const t0 = performance.now();
-      (function step(t){
-        const e = Math.min(1, (t - t0) / (dur * 1000)), k = 1 - Math.pow(1 - e, 3);
-        keys.forEach(key => obj[key] = from[key] + (to[key] - from[key]) * k);
-        props.onUpdate && props.onUpdate();
-        e < 1 ? requestAnimationFrame(step) : res();
-      })(t0);
-    }
-  });
-}
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
-/* ================= 进香巡游（南 → 北，逐站推镜进入） ================= */
-const pilgrim = document.getElementById('pilgrim');
-let tourRun=0;
-function stopTour(){tourRun++;touring=false;document.getElementById('btnTour').textContent='▶ 开始进香巡游';pilgrim.setAttribute('visibility','hidden');if(state.level==='opening')closeDetail({fromTour:true});renderCaps()}
-document.getElementById('btnTour').onclick=async function(){
- if(touring){stopTour();return}
- const run=++tourRun;touring=true;this.textContent='■ 停止巡游';await closeDetail({fromTour:true});if(run!==tourRun)return;tourOn=true;
- document.getElementById('btnTrail').textContent='隐藏巡游路线';trail.setAttribute('visibility','visible');pilgrim.setAttribute('visibility','visible');
- const pos={x:AXIS[0].px,y:AXIS[0].py},paint=()=>{pilgrim.setAttribute('cx',pos.x);pilgrim.setAttribute('cy',pos.y)};paint();
- for(const p of AXIS){
-  if(run!==tourRun)return;await tween(pos,{x:p.px,y:p.py,onUpdate:paint},.6,'power1.inOut');if(run!==tourRun)return;
-  await openDetail(p,{fromTour:true});if(run!==tourRun)return;await wait(4200);if(run!==tourRun)return;
-  await closeDetail({fromTour:true});if(run!==tourRun)return;
- }
- stopTour();moveCamera({x:0,y:0,k:isPhone()?1.95:1});
-};
+/* ================= 进香巡游（南 → 北，可滑动选站） ================= */
+// Route selection stays in the detail scene. Autoplay is explicit and interruptible.
+const pilgrim=document.getElementById('pilgrim');
+let routeActive=false,routeIndex=0,routeBusy=false,tourRun=0,routeSelectionToken=0,routeTimer=0,routeGoTimer=0;
+const routeUI=TaihaoRoute.create({stops:AXIS,onSelect:index=>requestRouteSelection(index),onPlayChange:playing=>setTourPlaying(playing,true),onExit:()=>{endRouteNavigation();closeDetail({fromTour:true})}});
+function setTourPlaying(value,fromUI=false){
+ const on=!!value&&routeActive;
+ if(touring===on){if(!fromUI&&routeUI.playing!==on)routeUI.setPlaying(on);return}
+ touring=on;tourRun++;clearTimeout(routeTimer);
+ if(!fromUI)routeUI.setPlaying(on);
+ renderCaps();if(on&&!routeBusy)scheduleRouteAdvance();
+}
+function stopTour(){setTourPlaying(false)}
+function scheduleRouteAdvance(){
+ clearTimeout(routeTimer);if(!routeActive||!touring||routeBusy)return;
+ const epoch=tourRun,point=AXIS[routeIndex],duration=Math.max(6500,Math.min(12000,(point.desc?.length||0)*38+1200));
+ routeTimer=setTimeout(()=>{
+  if(epoch!==tourRun||!routeActive||!touring)return;
+  if(routeIndex>=AXIS.length-1){setTourPlaying(false);notifyVisitor('已到巡游终点，可继续停留浏览。');return}
+  goRoute(routeIndex+1);
+ },duration);
+}
+async function goRoute(index){
+ if(!routeActive)return;
+ const token=++routeSelectionToken;routeIndex=Math.max(0,Math.min(AXIS.length-1,index));routeBusy=true;routeUI.setBusy(true);routeUI.select(routeIndex,{silent:true});
+ const p=AXIS[routeIndex];ensurePointVisible(p);closeMoreTools();
+ pilgrim.setAttribute('cx',p.px);pilgrim.setAttribute('cy',p.py);pilgrim.setAttribute('visibility','visible');
+ await openDetail(p,{fromTour:true});
+ if(token!==routeSelectionToken||!routeActive)return;
+ routeBusy=false;routeUI.setBusy(false);warmPointNeighbours(p);if(touring)scheduleRouteAdvance();
+}
+function requestRouteSelection(index){
+ if(!routeActive)return;setTourPlaying(false);clearTimeout(routeGoTimer);clearTimeout(routeTimer);
+ routeSelectionToken++;detailToken++;cancelCamera();finishPictureFade();routeIndex=index;routeBusy=true;routeUI.setBusy(true);
+ // Commit the final snap rather than rebuilding a scene for every intermediate drag position.
+ routeGoTimer=setTimeout(()=>goRoute(index),80);
+}
+function endRouteNavigation(){
+ if(!routeActive)return;setTourPlaying(false);routeActive=false;routeSelectionToken++;clearTimeout(routeGoTimer);clearTimeout(routeTimer);routeBusy=false;
+ routeUI.setBusy(false);routeUI.hide();document.body.classList.remove('route-active');pilgrim.setAttribute('visibility','hidden');
+ document.getElementById('btnTour').textContent='▶ 开始进香巡游';
+ for(const button of document.querySelectorAll('[data-mode]')){const selected=button.dataset.mode==='roam';button.classList.toggle('on',selected);button.setAttribute('aria-pressed',String(selected))}
+ renderCaps();
+}
+function beginRoute(){
+ if(routeActive){endRouteNavigation();closeDetail({fromTour:true});return}
+ stopTimeline();document.getElementById('timebar').classList.remove('show');routeActive=true;tourOn=true;
+ document.body.classList.add('route-active');document.getElementById('btnTour').textContent='结束进香巡游';
+ document.getElementById('btnTrail').textContent='隐藏巡游路线';trail.setAttribute('visibility','visible');
+ for(const button of document.querySelectorAll('[data-mode]')){const selected=button.dataset.mode==='tour';button.classList.toggle('on',selected);button.setAttribute('aria-pressed',String(selected))}
+ routeIndex=Math.max(0,AXIS.indexOf(state.cur));routeUI.show(routeIndex);goRoute(routeIndex);
+}
+document.getElementById('btnTour').onclick=beginRoute;
+for(const type of['pointerenter','focus'])document.getElementById('btnTour').addEventListener(type,()=>{if(!document.hidden)for(const p of AXIS.slice(0,2))loadPointImage(p,{warm:true})},{once:true});
 
 document.querySelectorAll('[data-mode]').forEach(ch => ch.addEventListener('click', () => {
+  const m=ch.dataset.mode;
+  if(m!=='tour'&&routeActive){endRouteNavigation();closeDetail({fromTour:true})}
   document.querySelectorAll('[data-mode]').forEach(c => c.classList.remove('on'));
   ch.classList.add('on');
-  const m = ch.dataset.mode;
   for(const button of document.querySelectorAll('[data-mode]'))button.setAttribute('aria-pressed',String(button===ch));
-  if(m!=='tour'&&touring)stopTourForReading();
   if(m!=='timeline')stopTimeline();
   document.getElementById('timebar').classList.toggle('show', m === 'timeline');
   if (m === 'timeline') {
@@ -1277,7 +1344,7 @@ document.querySelectorAll('[data-mode]').forEach(ch => ch.addEventListener('clic
     document.querySelector('[data-layer="heat"]').classList.add('on');document.querySelector('[data-layer="heat"]').setAttribute('aria-pressed','true');
     applyLayers();
   }
-  if (m === 'tour' && !touring) document.getElementById('btnTour').click();
+  if(m==='tour'&&!routeActive)beginRoute();
 }));
 
 /* ================= 校准模式（修正底图上的热点坐标） ================= */
@@ -1306,7 +1373,7 @@ detailview.addEventListener('click', e => {
   if (!e.target.closest('.sub') && !e.target.closest('.pop')) hidePop();
 });
 let previousPhone=isPhone();
-window.addEventListener('resize',()=>{const phone=isPhone();if(phone!==previousPhone&&Math.abs(view.k-(previousPhone?1.95:1))<.01&&Math.abs(view.x)<1&&Math.abs(view.y)<1)view.k=phone?1.95:1;previousPhone=phone;layout();layoutDetail();positionPop()});
+window.addEventListener('resize',()=>{const phone=isPhone();if(phone!==previousPhone&&Math.abs(view.k-(previousPhone?1.95:1))<.01&&Math.abs(view.x)<1&&Math.abs(view.y)<1)view.k=phone?1.95:1;previousPhone=phone;measureMap();layout();layoutDetail();positionPop()});
 
 /* ================= 更多工具菜单（仅管理界面开合） ================= */
 const moreTools = document.getElementById('moreTools'), moreButton = document.getElementById('btnMore');
@@ -1354,18 +1421,20 @@ function notifyVisitor(message,undo=null){
  noticeTimer=setTimeout(()=>{if(!undo)document.getElementById('siteNotice').hidden=true},4500);
 }
 document.getElementById('noticeUndo').onclick=()=>{const undo=undoNotice;undoNotice=null;if(undo)undo();notifyVisitor('已恢复盖印记录。')};
-function stopTourForReading(){if(touring){stopTour();if(!document.hidden)notifyVisitor('已停止自动巡游，可停留阅读或自由浏览。')}}
+function stopTourForReading(){if(touring){stopTour();if(!document.hidden)notifyVisitor('自动巡游已暂停，可停留阅读或选择下一站。')}}
 for(const type of['pointerdown','wheel','touchstart'])document.getElementById('dcard').addEventListener(type,stopTourForReading,{passive:true});
 document.getElementById('dcardBody').addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(e.key))stopTourForReading()});
 moreButton.addEventListener('click',stopTourForReading);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){stopTour();stopTimeline();hidePop()}});
-window.addEventListener('pagehide',()=>{stopTour();stopTimeline();hidePop()});
+window.addEventListener('pagehide',()=>{stopTour();stopTimeline();hidePop();clearTimeout(preloadTimer);clearTimeout(routeGoTimer);cancelCamera();finishPictureFade()});
 for(const button of document.querySelectorAll('[data-layer]'))button.setAttribute('aria-pressed',String(!!LAYERS[button.dataset.layer]));
 for(const button of document.querySelectorAll('[data-mode]'))button.setAttribute('aria-pressed',String(button.classList.contains('on')));
 
 /* ================= 启动渲染（放在最后，确保所有状态已就绪） ================= */
-window.__taihaoMap={get camera(){return {...view}},get level(){return state.level},get current(){return state.cur?.id||null},get touring(){return touring},get labels(){return [...hotlayer.querySelectorAll('.label-visible')].map(e=>e.dataset.id)}};
+window.__taihaoMap={get camera(){return {...view}},get level(){return state.level},get current(){return state.cur?.id||null},get touring(){return touring},get route(){return {active:routeActive,index:routeIndex,busy:routeBusy,playing:touring}},get labels(){return [...hotlayer.querySelectorAll('.label-visible')].map(e=>e.dataset.id)}};
 renderHotspots();
+document.fonts?.ready.then(()=>{labelMetricsDirty=true;queueLabels()});
+window.__taihaoPerf=tourPerf;
 
 /* A single entrance: reveal the loaded map without another intro or click. */
 const entryMapImage = document.getElementById('mapimg');
