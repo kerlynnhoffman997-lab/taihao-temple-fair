@@ -300,6 +300,7 @@
 <link rel="stylesheet" href="map-experience.css?v=refine2">
 <link rel="stylesheet" href="route-navigation.css?v=tour1">
 <link rel="stylesheet" href="tour-experience.css?v=tour1">
+<link rel="stylesheet" href="scene-images.css?v=scenes1">
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -424,6 +425,7 @@ for (const type of ['pageswap','pagereveal']) {
       <div class="dsubs" id="dsubs"></div>
       <div class="dgrad"></div>
       <div class="dtagbig" id="dtagbig"></div>
+      <span class="scene-credit">AI 场景插画</span>
     </div>
 
     <div class="dcard" id="dcard">
@@ -460,6 +462,8 @@ for (const type of ['pageswap','pagereveal']) {
 <script src="assets/vendor/motion-mini.js"></script><script src="assets/js/motion-ui.js"></script>
 <script src="assets/vendor/embla-carousel.umd.js"></script><script src="assets/js/route-navigation.js"></script>
 <script src="assets/vendor/howler.core-2.2.4.min.js"></script><script src="assets/js/sound.js"></script>
+<script src="assets/js/scene-assets.js?v=scenes1"></script>
+<script src="assets/js/scene-annotations.js?v=scenes1"></script>
 <script>
 /* ================= 底图与版画插画 ================= */
 const MAP_SRC = 'assets/img/001.jpg';
@@ -498,6 +502,7 @@ const ART = {
   ,e2b: IMG_BAGUA2
   ,longyuan: IMG_LONGYUAN
 };
+Object.assign(ART,window.TaihaoScenes?.assets||{});
 const VIDEO_DJT = 'assets/video/001.mp4';
 const VIDEO_BLH = 'assets/video/002.mp4';
 const VIDEO_NNG = 'assets/video/003.mp4';
@@ -521,7 +526,7 @@ const POIS = [
     desc:'横跨蔡河，景区最南端入口。香客抵达渡善桥，整理衣冠、摒除杂念、心怀向善，才算正式开启朝祖拜祖。旧时远道步行而来的香客，正是过桥之后才开始焚香跪拜。',
     tip:'古礼制：古代皇家走中间主桥，文武官员走东西副桥；如今香客均可走中桥。', tags:['过桥净心','启拜起点'] },
   { id:'q1b', cat:'axis', step:'第 1·2 站之间', name:'道仪门', px:980, py:864, lx:-100, ly:-44,
-    desc:'中轴线南端第一道门，门楣悬「道儀門」匾。旧时香客朝祖，过道仪门即整衣冠、肃仪容，循门入庙开启拜祖仪程。两侧门联书“迎清风抱明月而长终，望斗牛接飞仙以遨游”。',
+    desc:'中轴线南端第一道门，门楣悬「儀門」匾。旧时香客朝祖，过道仪门即整衣冠、肃仪容，循门入庙开启拜祖仪程。两侧门联书“迎清风抱明月而长终，望斗牛接飞仙以遨游”。',
     tip:'', tags:['第一道门','整衣正冠','门联'] },
   { id:'q2', cat:'axis', step:'第 2 站', name:'午朝门', px:962, py:802, lx:140, ly:-64,
     desc:'外城第一道大门，正门为皇家规格的九九八十一颗大门钉。香客伸手触摸门钉，祈求家宅安宁、人丁兴旺、消灾解难。',
@@ -599,7 +604,7 @@ const SUBS = {
   q1:[{x:18,y:62,t:'蔡河',d:'渡善桥横跨蔡河。旧时香客多在此整衣冠、静心神，怀恶念者不宜拜人祖。'},
       {x:56,y:46,t:'桥面 · 过桥净心',d:'过桥即入陵区，心怀向善才算正式开启朝祖拜祖。'},
       {x:50,y:12,t:'桥亭',d:'古制：皇家走中桥，文武官员分走东西副桥；如今香客均可走中桥。'}],
-  q1b:[{x:50,y:30,t:'「道儀門」匾',d:'道仪门为中轴线南端第一道门，过门即整衣冠、肃仪容，开启拜祖仪程。'},
+  q1b:[{x:50,y:30,t:'「儀門」匾',d:'道仪门为中轴线南端第一道门，过门即整衣冠、肃仪容，开启拜祖仪程。'},
        {x:16,y:52,t:'门联',d:'“迎清风抱明月而长终，望斗牛接飞仙以遨游”。'},
        {x:50,y:86,t:'雪中神道',d:'门洞内神道纵深，直通午朝门。'}],
   q2:[{x:16,y:80,t:'九九八十一门钉',d:'正门皇家规格，金色门钉满布门扇；香客以手触摸，祈家宅安宁、人丁兴旺、消灾解难。'},
@@ -661,6 +666,9 @@ const SUBS = {
       {x:62,y:58,t:'沾人祖福气',d:'祭拜完人祖买压缩馍带回家分给家人，寓意沾得福气。',img:IMG_YAMO2}],
   longyuan:[{x:50,y:46,t:'龙园俯瞰',d:'步道盘旋如游龙，松柏葱郁、绿意盎然。',img:IMG_LONGYUAN}]
 };
+
+// Detail-image popups follow the regenerated scene; supplied originals stay preserved.
+for(const [id,entries] of Object.entries(SUBS))for(const item of entries)if(item.img&&ART[id]){item.img=ART[id];item.sceneImage=true}
 
 /* 非遗页签的专属说明（无专属者回落到统一文案） */
 SUBS.HERITAGE = {
@@ -904,6 +912,12 @@ const pop    = document.getElementById('pop');
 const state  = { level:'map', cur:null };
 
 const pointImageCache=new Map();let currentFrame=null,sceneFade=null,preloadTimer=0,wantedMedia='';
+function refreshDecodedPoint(src){
+ if(state.level!=='detail'||!state.cur||ART[state.cur.id]!==src||wantedMedia!==src||!currentFrame?.classList.contains('mapcrop'))return;
+ const entry=pointImageCache.get(src);
+ if(entry?.status==='ready')fillMedia(state.cur,{crossfade:true}).then(layoutDetail);
+ else if(entry?.status==='failed'){const credit=document.querySelector('.scene-credit');if(credit)credit.textContent='地图局部'}
+}
 function trimPointImages(){
  if(pointImageCache.size<=6)return;
  for(const[key,entry]of pointImageCache){if(pointImageCache.size<=6)break;if(!entry.image.isConnected&&entry.status!=='loading'&&key!==wantedMedia)pointImageCache.delete(key)}
@@ -914,7 +928,7 @@ async function loadPointImage(p,{warm=false}={}){
  if(!entry){
   const image=new Image();image.decoding='async';image.fetchPriority=warm?'low':'high';image.src=src;
   entry={image,status:'loading',promise:null};pointImageCache.set(src,entry);tourPerf.decodeRequests++;
-  entry.promise=image.decode().then(()=>{entry.status='ready';trimPointImages();return image},()=>{entry.status='failed';trimPointImages();return null});
+  entry.promise=image.decode().then(()=>{entry.status='ready';trimPointImages();queueMicrotask(()=>refreshDecodedPoint(src));return image},()=>{entry.status='failed';trimPointImages();queueMicrotask(()=>refreshDecodedPoint(src));return null});
  }else{pointImageCache.delete(src);pointImageCache.set(src,entry)}
  return Promise.race([entry.promise,wait(warm?2200:1600).then(()=>null)]);
 }
@@ -930,6 +944,7 @@ function finishPictureFade(){
 function fillMedia(p,{crossfade=false}={}){
  finishPictureFade();const previous=currentFrame,entry=pointImageCache.get(ART[p.id]);
  let image=entry?.status==='ready'?entry.image:null;
+ const credit=document.querySelector('.scene-credit');if(credit)credit.textContent=image?'AI 场景插画':entry?.status==='loading'?'场景插画载入中…':'地图局部';
  if(image){image.className='scene-photo';image.removeAttribute('id');image.alt=p.name}
  else{image=new Image();image.className='mapcrop';image.id='mapcrop';image.alt=p.name+' · 地图局部';image.src=MAP_SRC}
  if(previous===image){layoutDetail();return Promise.resolve()}
@@ -946,7 +961,9 @@ function fillMedia(p,{crossfade=false}={}){
 }
 
 function layoutDetail(){
-  const el = document.getElementById('mapcrop'); if (!el || !state.cur) return;
+  if(!state.cur)return;
+  if(currentFrame?.classList.contains('scene-photo')){window.TaihaoScenes?.positionAnnotations(state.cur.id,dsubs,dsubs.querySelectorAll('.sub'));return}
+  const el = document.getElementById('mapcrop'); if (!el) return;
   const box = dmedia.getBoundingClientRect(); if (!box.width) return;
   const z = Math.max(box.width/VW,box.height/VH)*1.65;
   el.style.transform =
@@ -992,7 +1009,7 @@ function openSub(p,index,trigger){
  if(item.v){
   media.innerHTML='<span class="vbox"><video controls playsinline preload="metadata"></video></span>';
   const video=media.querySelector('video');video.src=videoUrl(item.v);safePlay(video);
- }else if(item.img){media.innerHTML=`<img class="pimg" src="${item.img}" alt="${item.t}" decoding="async">`}
+ }else if(item.img){media.innerHTML=item.sceneImage?`<a class="scene-full-image" href="${item.img}" target="_blank" rel="noopener noreferrer" aria-label="打开${p.name}完整场景插画"><img class="pimg" src="${item.img}" alt="${p.name}场景插画" decoding="async"><span>打开完整场景图 ↗</span></a>`:`<img class="pimg" src="${item.img}" alt="${item.t}" decoding="async">`}
  else media.innerHTML='';
  const entries=SUBS[p.id]||[],footer=pop.querySelector('.pop-nav');
  footer.innerHTML=`<button type="button" data-sub-step="-1" ${index===0?'disabled':''} aria-label="上一条场景注解">上一条</button><span>${index+1} / ${entries.length}</span><button type="button" data-sub-step="1" ${index===entries.length-1?'disabled':''} aria-label="下一条场景注解">下一条</button>`;
@@ -1001,13 +1018,14 @@ function openSub(p,index,trigger){
  document.getElementById('popX').focus({preventScroll:true});
 }
 function fillSubs(p){
- dsubs.innerHTML=(SUBS[p.id]||[]).map((s,i)=>`<button type="button" aria-label="${s.t}${s.v?'，视频':s.img?'，图片':''}" class="sub ${s.v?'vid':''}" data-i="${i}" style="left:${s.x}%;top:${s.y}%">${s.v?'▶':s.img?'图':i+1}</button>`).join('');
+ dsubs.innerHTML=(SUBS[p.id]||[]).map((s,i)=>`<button type="button" aria-label="${s.t}${s.v?'，视频':s.img?'，图片':''}" class="sub ${s.v?'vid':''}" data-i="${i}" data-x="${s.x}" data-y="${s.y}" style="left:${s.x}%;top:${s.y}%">${s.v?'▶':s.img?'图':i+1}</button>`).join('');
  dsubs.querySelectorAll('.sub').forEach(el=>el.onclick=e=>{e.stopPropagation();openSub(p,+el.dataset.i,el)});
+ window.TaihaoScenes?.positionAnnotations(p.id,dsubs,dsubs.querySelectorAll('.sub'));
 }
 function fillPointMedia(p){
  const entries=SUBS[p.id]||[],video=entries.findIndex(e=>e.v),image=entries.findIndex(e=>e.img),text=entries.findIndex(e=>!e.v&&!e.img),items=[];
  if(video>=0)items.push({index:video,label:'看民俗短片'});
- if(image>=0)items.push({index:image,label:'查看细节图'});
+ if(image>=0)items.push({index:image,label:entries[image].sceneImage?'查看场景全图':'查看细节图'});
  if(text>=0)items.push({index:text,label:'场景注解'});
  const box=document.getElementById('pointMedia');box.hidden=!items.length;
  box.innerHTML=items.map(item=>`<button type="button" class="media-action" data-sub-index="${item.index}">${item.label} ↗</button>`).join('');
@@ -1144,7 +1162,7 @@ function renderAtlas(){
  for(const button of atlasTabs.children){const t=button.dataset.t,n=POIS.filter(p=>(t==='全部'||KIND[p.id]===t)&&pointMatches(p,query)).length;button.textContent=t+' '+n;button.classList.toggle('on',atlasTab===t);button.setAttribute('aria-pressed',String(atlasTab===t))}
  const hits=POIS.filter(p=>(atlasTab==='全部'||KIND[p.id]===atlasTab)&&pointMatches(p,query));
  document.getElementById('atlasCount').textContent=hits.length+' 处点位';
- atlasGrid.innerHTML=hits.length?hits.map(p=>`<button type="button" class="item" data-id="${p.id}"><span class="atlas-thumb"><img src="${ART[p.id]||MAP_SRC}" alt="" loading="lazy" decoding="async"></span><span class="k" style="background:${KC[KIND[p.id]]}">${KIND[p.id]}</span><span class="n">${p.name}</span><span class="s">${p.step}</span></button>`).join(''):'<p class="atlas-empty">没有找到相关点位，试试其他名称或切换分类。</p>';
+ atlasGrid.innerHTML=hits.length?hits.map(p=>`<button type="button" class="item" data-id="${p.id}"><span class="atlas-thumb"><img src="${window.TaihaoScenes?.thumbnails?.[p.id]||ART[p.id]||MAP_SRC}" alt="" loading="lazy" decoding="async"></span><span class="k" style="background:${KC[KIND[p.id]]}">${KIND[p.id]}</span><span class="n">${p.name}</span><span class="s">${p.step}</span></button>`).join(''):'<p class="atlas-empty">没有找到相关点位，试试其他名称或切换分类。</p>';
  atlasGrid.scrollTop=0;
 }
 function ensurePointVisible(p){

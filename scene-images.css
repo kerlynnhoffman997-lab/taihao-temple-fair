@@ -1,0 +1,24 @@
+/* Full scene images stay visible at every viewport ratio. */
+.dimg{
+  background:var(--paper, #f5efe3);
+}
+.dmedia > .scene-photo{
+  object-fit:contain;
+  object-position:50% 50%;
+  background:var(--paper, #f5efe3);
+}
+.detailview .dgrad{
+  background:linear-gradient(to top, rgba(36,30,23,.12), transparent 35%);
+}
+.pop .pmedia .pimg{
+  height:auto;
+  max-height:44svh;
+  object-fit:contain;
+  background:var(--paper, #f5efe3);
+}
+
+.scene-credit{position:absolute;right:14px;bottom:12px;z-index:2;padding:4px 7px;pointer-events:none;border-radius:4px;background:rgba(245,239,227,.88);color:#765b3c;font-size:10px;line-height:1.5;letter-spacing:.5px}
+.detailview .dtagbig{padding:7px 12px;border:1px solid #d8c8ae;border-radius:5px;background:rgba(245,239,227,.94);color:#704029;text-shadow:none}
+.scene-full-image{display:block;color:#85442e;text-align:center;text-decoration:none}
+.scene-full-image>span{display:flex;align-items:center;justify-content:center;min-height:44px;font-size:11px;text-decoration:underline;text-underline-offset:3px}
+.scene-full-image:focus-visible{outline:2px solid #b33b24;outline-offset:3px}
