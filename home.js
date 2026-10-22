@@ -93,7 +93,7 @@ const photo=new Promise(resolve=>{image.onload=()=>resolve();image.onerror=()=>r
 const page=fetch('tour.html',{cache:'reload'}).catch(()=>{});
 warmedMap=Promise.all([photo,page]);return warmedMap;
 }
-for(const link of document.querySelectorAll('a[href="tour.html"]')){
+for(const link of document.querySelectorAll('a[href^="tour.html"]')){
 link.addEventListener('pointerenter',warmMap,{once:true,passive:true});
 link.addEventListener('focus',warmMap,{once:true});
 link.addEventListener('click',async event=>{

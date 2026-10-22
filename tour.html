@@ -298,9 +298,11 @@
   }
 </style>
 <link rel="stylesheet" href="map-experience.css?v=refine2">
-<link rel="stylesheet" href="route-navigation.css?v=tour1">
+<link rel="stylesheet" href="route-navigation.css?v=flow1">
 <link rel="stylesheet" href="tour-experience.css?v=tour1">
 <link rel="stylesheet" href="scene-images.css?v=scenes1">
+<link rel="stylesheet" href="image-viewer.css?v=flow1">
+<link rel="stylesheet" href="visitor-flow.css?v=flow1">
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -411,6 +413,7 @@ for (const type of ['pageswap','pagereveal']) {
 <div class="tool-section sound-settings"><p class="tool-label">声音设置</p><label for="soundVolume">音量 <output id="soundVolumeValue">28%</output></label><input id="soundVolume" type="range" min="0" max="100" value="28" aria-label="提示音音量"><button class="btn" id="soundMenuToggle" type="button" aria-pressed="false">开启声音</button><button class="btn" id="soundPreview" type="button">试听合成音景</button><p class="sound-note" id="soundStatus" aria-live="polite">合成音景，非现场录音。需手动开启。</p></div>
       <div class="tool-section tool-utilities">
         <button class="btn" id="btnTrail" type="button">显示巡游路线</button>
+        <button class="btn" id="routeRestart" type="button">从第一站巡游</button>
         <button class="btn" id="btnReset" type="button">复位地图</button><button class="btn" id="btnCal" type="button" aria-expanded="false" aria-controls="calbox" hidden>校准点位</button>
         <button class="btn" id="stampReset" type="button">清空盖印记录</button>
       </div>
@@ -432,7 +435,7 @@ for (const type of ['pageswap','pagereveal']) {
       <button class="close" id="dcardClose" type="button" aria-label="返回地图">✕</button>
       <span class="cat" id="dcardCat"></span>
       <h3 id="dcardTitle"></h3>
-      <div class="step" id="dcardStep"></div><div id="pointMedia" class="media-actions" aria-label="点位图片、视频与注解"></div>
+      <div class="step" id="dcardStep"></div><p id="pointPending" class="point-pending" role="status" hidden></p><div id="pointMedia" class="media-actions" aria-label="点位图片、视频与注解"></div>
       <div class="dtabs" id="dcardTabs" role="tablist" aria-label="点位说明"></div>
       <div class="dbody" id="dcardBody" role="tabpanel" tabindex="0" aria-label="点位说明正文"></div>
       <div class="acts">
@@ -440,6 +443,7 @@ for (const type of ['pageswap','pagereveal']) {
         <button class="ab stamp" id="dStampBtn" type="button">在此进香 · 盖香印</button>
       </div>
       <div class="tags" id="dcardTags"></div>
+      <div id="routeFinish" class="route-finish" hidden><p>中轴线已走完，接着逛逛庙会风物。</p><button id="routeFinishAtlas" type="button">逛民俗风物</button><button id="routeFinishMap" type="button">返回地图</button></div>
     </div>
 
     <div class="pop" id="pop"><button type="button" class="x" id="popX" aria-label="关闭媒体">✕</button><b></b><span class="pmedia"></span><span class="txt"></span><div class="pop-nav"></div></div>
@@ -460,10 +464,12 @@ for (const type of ['pageswap','pagereveal']) {
 
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/motion-mini.js"></script><script src="assets/js/motion-ui.js"></script>
-<script src="assets/vendor/embla-carousel.umd.js"></script><script src="assets/js/route-navigation.js"></script>
+<script src="assets/vendor/embla-carousel.umd.js"></script><script src="assets/js/route-navigation.js?v=flow1"></script>
 <script src="assets/vendor/howler.core-2.2.4.min.js"></script><script src="assets/js/sound.js"></script>
 <script src="assets/js/scene-assets.js?v=scenes1"></script>
 <script src="assets/js/scene-annotations.js?v=scenes1"></script>
+<script src="assets/js/image-viewer.js?v=flow1"></script>
+<script src="assets/js/visitor-flow.js?v=flow1"></script>
 <script>
 /* ================= 底图与版画插画 ================= */
 const MAP_SRC = 'assets/img/001.jpg';
@@ -517,6 +523,8 @@ const KC = { '建筑':'#3D6B8C','民俗':'#3E7C6F','非遗':'#B33B24','美食':'
 
 /* 全局状态（提前声明，供下方各模块初始化时安全引用） */
 let tourOn = false, touring = false, curDay = 0, lastMoved = 0;
+let visitorFlow=null,lastRouteIndex=0,visitSaveTimer=0;
+let routeActive=false,routeIndex=0,routeBusy=false,tourRun=0,routeSelectionToken=0,routeTimer=0,routeGoTimer=0;
 let stampSet={};
 try{const saved=JSON.parse(localStorage.getItem('thaihao-stamps')||'{}');if(saved&&typeof saved==='object'&&!Array.isArray(saved))stampSet=saved}catch{}
 
@@ -745,7 +753,7 @@ function moveCamera(target,duration=.38){
  return new Promise(resolve=>{finishCamera=resolve;const from={...view},start=performance.now();
   function tick(now){const t=Math.min(1,(now-start)/(duration*1000)),e=1-Math.pow(1-t,3);tourPerf.cameraFrames++;
    for(const key of['x','y','k'])view[key]=from[key]+(target[key]-from[key])*e;apply();
-   if(t<1)cameraFrame=requestAnimationFrame(tick);else{cameraFrame=0;finishCamera=null;setCameraMoving(false);resolve(true)}
+   if(t<1)cameraFrame=requestAnimationFrame(tick);else{cameraFrame=0;finishCamera=null;setCameraMoving(false);scheduleVisitSave();resolve(true)}
   }cameraFrame=requestAnimationFrame(tick);
  });
 }
@@ -783,7 +791,7 @@ mapview.addEventListener('pointermove',e=>{
  }
  mapGesture=lastMoved>6;mapview.classList.toggle('is-dragging',mapGesture);apply();
 });
-function endPointer(e){pointers.delete(e.pointerId);seedGesture();if(!pointers.size){mapGesture=false;mapview.classList.remove('is-dragging');setCameraMoving(false)}}
+function endPointer(e){scheduleVisitSave();pointers.delete(e.pointerId);seedGesture();if(!pointers.size){mapGesture=false;mapview.classList.remove('is-dragging');setCameraMoving(false)}}
 for(const type of['pointerup','pointercancel','lostpointercapture'])mapview.addEventListener(type,endPointer);
 document.getElementById('btnReset').onclick=async()=>{stopTour();await closeDetail();moveCamera({x:0,y:0,k:isPhone()?1.95:1})};
 document.getElementById('zoomIn').onclick=()=>zoomAt(1.3);document.getElementById('zoomOut').onclick=()=>zoomAt(1/1.3);
@@ -998,8 +1006,9 @@ function positionPop(){
  pop.style.left=Math.max(12,Math.min(x,innerWidth-width-12))+'px';
  pop.style.top=Math.max(safeTop,Math.min(anchor.top,innerHeight-height-12))+'px';
 }
-function openSub(p,index,trigger){
+function openSub(p,index,trigger,{autoplay=true}={}){
  const item=(SUBS[p.id]||[])[index];if(!item)return;
+ visitorFlow?.media(index);stopTimeline();
  stopTourForReading();const oldVideo=pop.querySelector('video');if(oldVideo)oldVideo.pause();
  activeSub={point:p,index};popTrigger=trigger||popTrigger;
  dsubs.querySelectorAll('.sub').forEach(el=>el.classList.toggle('on',+el.dataset.i===index));
@@ -1008,12 +1017,13 @@ function openSub(p,index,trigger){
  const media=pop.querySelector('.pmedia');
  if(item.v){
   media.innerHTML='<span class="vbox"><video controls playsinline preload="metadata"></video></span>';
-  const video=media.querySelector('video');video.src=videoUrl(item.v);safePlay(video);
+  const video=media.querySelector('video');video.src=videoUrl(item.v);if(autoplay)safePlay(video);
  }else if(item.img){media.innerHTML=item.sceneImage?`<a class="scene-full-image" href="${item.img}" target="_blank" rel="noopener noreferrer" aria-label="打开${p.name}完整场景插画"><img class="pimg" src="${item.img}" alt="${p.name}场景插画" decoding="async"><span>打开完整场景图 ↗</span></a>`:`<img class="pimg" src="${item.img}" alt="${item.t}" decoding="async">`}
  else media.innerHTML='';
  const entries=SUBS[p.id]||[],footer=pop.querySelector('.pop-nav');
  footer.innerHTML=`<button type="button" data-sub-step="-1" ${index===0?'disabled':''} aria-label="上一条场景注解">上一条</button><span>${index+1} / ${entries.length}</span><button type="button" data-sub-step="1" ${index===entries.length-1?'disabled':''} aria-label="下一条场景注解">下一条</button>`;
  pop.classList.toggle('wide',!!(item.v||item.img));pop.classList.add('show');positionPop();
+ const fullImage=media.querySelector('.scene-full-image');if(fullImage)fullImage.onclick=e=>{if(e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();e.stopPropagation();openSceneImage(fullImage,true)};
  media.querySelector('img')?.addEventListener('load',positionPop,{once:true});media.querySelector('video')?.addEventListener('loadedmetadata',positionPop,{once:true});
  document.getElementById('popX').focus({preventScroll:true});
 }
@@ -1025,13 +1035,15 @@ function fillSubs(p){
 function fillPointMedia(p){
  const entries=SUBS[p.id]||[],video=entries.findIndex(e=>e.v),image=entries.findIndex(e=>e.img),text=entries.findIndex(e=>!e.v&&!e.img),items=[];
  if(video>=0)items.push({index:video,label:'看民俗短片'});
- if(image>=0)items.push({index:image,label:entries[image].sceneImage?'查看场景全图':'查看细节图'});
+ if(ART[p.id])items.push({action:'image',label:'放大场景'});
+ else if(image>=0)items.push({index:image,label:'查看细节图'});
  if(text>=0)items.push({index:text,label:'场景注解'});
  const box=document.getElementById('pointMedia');box.hidden=!items.length;
- box.innerHTML=items.map(item=>`<button type="button" class="media-action" data-sub-index="${item.index}">${item.label} ↗</button>`).join('');
- box.onclick=e=>{const button=e.target.closest('[data-sub-index]');if(button){e.stopPropagation();openSub(state.cur,+button.dataset.subIndex,button)}};
+ box.innerHTML=items.map(item=>`<button type="button" class="media-action" ${item.action?`data-media-action="${item.action}"`:`data-sub-index="${item.index}"`}>${item.label} ↗</button>`).join('');
+ box.onclick=e=>{const button=e.target.closest('button');if(!button)return;e.stopPropagation();if(button.dataset.mediaAction==='image')openSceneImage(button);else if(button.hasAttribute('data-sub-index'))openSub(state.cur,+button.dataset.subIndex,button)};
 }
 function hidePop(restoreFocus=false){
+ if(pop.classList.contains('show'))visitorFlow?.closeMedia();
  const video=pop.querySelector('video');if(video)video.pause();pop.classList.remove('show');activeSub=null;
  dsubs.querySelectorAll('.sub').forEach(x=>x.classList.remove('on'));
  if(restoreFocus&&popTrigger?.isConnected&&popTrigger.getClientRects().length)popTrigger.focus({preventScroll:true});
@@ -1063,8 +1075,8 @@ function fillCard(p){
   else                         body.innerHTML = p.tip
       ? `<div class="tip">${p.tip}</div>`
       : '按现行管理规范文明进香，遵守景区文物保护规定。';
-  tabBar.onclick=e=>{const tab=e.target.closest('.dtab');if(!tab)return;stopTourForReading();cardTab=tab.dataset.t;fillCard(state.cur)};
-  tabBar.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();e.stopPropagation();stopTourForReading();let i=tabs.indexOf(cardTab);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;cardTab=tabs[i];fillCard(state.cur);tabBar.children[i].focus()};
+  tabBar.onclick=e=>{const tab=e.target.closest('.dtab');if(!tab)return;stopTourForReading();cardTab=tab.dataset.t;visitorFlow?.tab(cardTab);fillCard(state.cur)};
+  tabBar.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();e.stopPropagation();stopTourForReading();let i=tabs.indexOf(cardTab);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;cardTab=tabs[i];visitorFlow?.tab(cardTab);fillCard(state.cur);tabBar.children[i].focus()};
   fillPointMedia(p);
   refreshStampBtn();
 }
@@ -1076,8 +1088,11 @@ function highlight(p) {
 }
 let detailToken=0,returnView=null,returnFocus=null;
 async function openDetail(p,{fromTour=false}={}){
+ stopTimeline();
  if(!fromTour){stopTourForReading();if(routeActive){const index=AXIS.indexOf(p);if(index>=0){routeIndex=index;routeUI.select(index,{silent:true})}else endRouteNavigation()}}
+ visitorFlow?.point(p.id,routeActive);
  if(state.level==='detail')return swapDetail(p);
+ setDetailPending(p);
  const token=++detailToken;if(state.level==='map'){returnView={...view};returnFocus=document.activeElement}
  state.level='opening';state.cur=p;cardTab='习俗';highlight(p);
  document.getElementById('mapCaption').textContent='走近 · '+p.name;window.TaihaoSound?.playCue('point');
@@ -1085,7 +1100,7 @@ async function openDetail(p,{fromTour=false}={}){
  if(token!==detailToken)return;
  const r=mapview.getBoundingClientRect(),sx=r.left+OX+p.px*S,sy=r.top+OY+p.py*S;
  scene.style.transformOrigin=`${sx-r.left}px ${sy-r.top}px`;
- fillMedia(p);fillSubs(p);fillCard(p);state.level='detail';
+ fillMedia(p);fillSubs(p);fillCard(p);state.level='detail';setDetailPending(null);
  document.getElementById('dtagbig').textContent=p.name;
  detailview.classList.remove('out','fading');detailview.style.display='block';
  document.querySelector('.stage').classList.add('has-detail');mapview.inert=true;
@@ -1094,15 +1109,17 @@ async function openDetail(p,{fromTour=false}={}){
  }));renderCaps();warmPointNeighbours(p);return wait(reducedMotion.matches?0:240);
 }
 async function swapDetail(p){
+ visitorFlow?.point(p.id,routeActive);setDetailPending(p);
  const token=++detailToken;hidePop();window.TaihaoSound?.playCue('point');
  await loadPointImage(p);if(token!==detailToken)return false;
- state.level='detail';state.cur=p;cardTab='习俗';
+ state.level='detail';state.cur=p;cardTab='习俗';setDetailPending(null);
  const fading=fillMedia(p,{crossfade:true});fillSubs(p);fillCard(p);highlight(p);
  document.getElementById('dtagbig').textContent=p.name;detailview.classList.remove('fading');renderCaps();
  document.getElementById('dcard').scrollTop=0;document.getElementById('dcardBody').scrollTop=0;
  warmPointNeighbours(p);await fading;return token===detailToken;
 }
 async function closeDetail({fromTour=false}={}){
+ visitorFlow?.map();setDetailPending(null);
  if(!fromTour&&routeActive)endRouteNavigation();if(state.level==='map')return;
  ++detailToken;hidePop();finishPictureFade();window.TaihaoSound?.stop();
  detailview.classList.remove('in','fading');detailview.classList.add('out');mapview.classList.remove('pushing');mapview.inert=false;
@@ -1122,13 +1139,13 @@ function renderCaps() {
   } else {
     const i = SEQ.indexOf(s.cur);
     h += `<button type="button" class="cap" data-act="home">‹ 返回地图</button>`;
-    h += `<button type="button" class="cap ${i > 0 ? '' : 'off'}" ${i>0?'':'disabled'} data-act="prev">‹ 上一站</button>`;
+    h += `<button type="button" class="cap ${i > 0 ? '' : 'off'}" ${i>0?'':'disabled'} data-act="prev">‹ 上一处</button>`;
     h += `<span class="cap on">${s.cur.step}</span>`;
     h += `<span class="cap flat">${s.cur.name}</span>`;
-    h += `<button type="button" class="cap ${i < SEQ.length - 1 ? '' : 'off'}" ${i<SEQ.length-1?'':'disabled'} data-act="next">下一站 ›</button>`;
+    h += `<button type="button" class="cap ${i < SEQ.length - 1 ? '' : 'off'}" ${i<SEQ.length-1?'':'disabled'} data-act="next">下一处 ›</button>`;
     if (touring) h += `<span class="cap on">巡游中…</span>`;
   }
-  capsbar.innerHTML = h;
+  capsbar.innerHTML = h;updateRouteFinish();
 }
 capsbar.addEventListener('click', e => {
   const c = e.target.closest('.cap'); if (!c || c.classList.contains('off')) return;
@@ -1140,6 +1157,7 @@ capsbar.addEventListener('click', e => {
 });
 renderCaps();
 window.addEventListener('keydown', e => {
+  if(window.TaihaoImageViewer?.isOpen)return;
   if(e.target.closest('input,textarea,select,[contenteditable="true"]'))return;
   if(e.key==='Escape'){if(atlas.classList.contains('show')){closeAtlas();return}if(pop.classList.contains('show')){hidePop(true);return}if(!moreTools.hidden)return;closeDetail();}
   if(atlas.classList.contains('show')||!moreTools.hidden||pop.classList.contains('show'))return;
@@ -1171,19 +1189,22 @@ function ensurePointVisible(p){
 }
 function closeAtlas({restoreFocus=true}={}){
  if(!atlas.classList.contains('show'))return;
+ visitorFlow?.closeOverlay('atlas');
  atlas.classList.remove('show');
  if(atlasInertState){for(const[element,inert]of atlasInertState)element.inert=inert;atlasInertState=null}
  if(restoreFocus)document.getElementById('btnAtlas').focus({preventScroll:true});
 }
 function choosePoint(p){
- if(!p)return;stopTourForReading();closeMoreTools();closeAtlas({restoreFocus:false});ensurePointVisible(p);openDetail(p);
+ if(!p)return;visitorFlow?.point(p.id,routeActive&&p.cat==='axis');stopTourForReading();closeMoreTools();closeAtlas({restoreFocus:false});ensurePointVisible(p);openDetail(p);
 }
-document.getElementById('btnAtlas').onclick=()=>{
- stopTourForReading();closeMoreTools();renderAtlas();atlas.classList.add('show');
+function openAtlas(){
+ if(atlas.classList.contains('show')){atlasSearch.focus({preventScroll:true});return}
+ visitorFlow?.openOverlay('atlas');stopTimeline();stopTourForReading();hidePop();closeMoreTools();renderAtlas();atlas.classList.add('show');
  atlasInertState=new Map([...document.querySelector('.stage').children].filter(e=>e!==atlas&&e instanceof HTMLElement).map(e=>[e,e.inert]));
  for(const element of atlasInertState.keys())element.inert=true;
  window.TaihaoMotion?.reveal(atlas.querySelector('.box'));atlasSearch.focus({preventScroll:true});
-};
+}
+document.getElementById('btnAtlas').onclick=openAtlas;
 document.getElementById('atlasClose').onclick=()=>closeAtlas();
 atlas.addEventListener('click',e=>{if(e.target===atlas)closeAtlas()});
 atlasTabs.addEventListener('click',e=>{const tab=e.target.closest('[data-t]');if(!tab)return;atlasTab=tab.dataset.t;renderAtlas()});
@@ -1225,7 +1246,7 @@ searchBox.addEventListener('keydown',e=>{
 });
 sugg.addEventListener('click',e=>{const option=e.target.closest('[data-id]');if(option)choosePoint(POIS.find(p=>p.id===option.dataset.id))});
 document.getElementById('mapCaption').onclick=()=>{
- stopTourForReading();moreTools.hidden=false;moreButton.setAttribute('aria-expanded','true');window.TaihaoMotion?.reveal(moreTools);searchBox.focus({preventScroll:true});searchBox.select();searchBox.scrollIntoView({block:'nearest'});renderSearch();
+ openMoreTools(true);
 };
 
 /* ================= 进香打卡 · 盖香印 ================= */
@@ -1296,7 +1317,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 /* ================= 进香巡游（南 → 北，可滑动选站） ================= */
 // Route selection stays in the detail scene. Autoplay is explicit and interruptible.
 const pilgrim=document.getElementById('pilgrim');
-let routeActive=false,routeIndex=0,routeBusy=false,tourRun=0,routeSelectionToken=0,routeTimer=0,routeGoTimer=0;
+
 const routeUI=TaihaoRoute.create({stops:AXIS,onSelect:index=>requestRouteSelection(index),onPlayChange:playing=>setTourPlaying(playing,true),onExit:()=>{endRouteNavigation();closeDetail({fromTour:true})}});
 function setTourPlaying(value,fromUI=false){
  const on=!!value&&routeActive;
@@ -1317,7 +1338,7 @@ function scheduleRouteAdvance(){
 }
 async function goRoute(index){
  if(!routeActive)return;
- const token=++routeSelectionToken;routeIndex=Math.max(0,Math.min(AXIS.length-1,index));routeBusy=true;routeUI.setBusy(true);routeUI.select(routeIndex,{silent:true});
+ const token=++routeSelectionToken;routeIndex=Math.max(0,Math.min(AXIS.length-1,index));lastRouteIndex=routeIndex;visitorFlow?.point(AXIS[routeIndex].id,true);routeBusy=true;routeUI.setBusy(true);routeUI.select(routeIndex,{silent:true});
  const p=AXIS[routeIndex];ensurePointVisible(p);closeMoreTools();
  pilgrim.setAttribute('cx',p.px);pilgrim.setAttribute('cy',p.py);pilgrim.setAttribute('visibility','visible');
  await openDetail(p,{fromTour:true});
@@ -1326,26 +1347,30 @@ async function goRoute(index){
 }
 function requestRouteSelection(index){
  if(!routeActive)return;setTourPlaying(false);clearTimeout(routeGoTimer);clearTimeout(routeTimer);
- routeSelectionToken++;detailToken++;cancelCamera();finishPictureFade();routeIndex=index;routeBusy=true;routeUI.setBusy(true);
+ routeSelectionToken++;detailToken++;cancelCamera();finishPictureFade();routeIndex=index;lastRouteIndex=index;visitorFlow?.point(AXIS[index].id,true);routeBusy=true;routeUI.setBusy(true);
  // Commit the final snap rather than rebuilding a scene for every intermediate drag position.
  routeGoTimer=setTimeout(()=>goRoute(index),80);
 }
 function endRouteNavigation(){
  if(!routeActive)return;setTourPlaying(false);routeActive=false;routeSelectionToken++;clearTimeout(routeGoTimer);clearTimeout(routeTimer);routeBusy=false;
  routeUI.setBusy(false);routeUI.hide();document.body.classList.remove('route-active');pilgrim.setAttribute('visibility','hidden');
- document.getElementById('btnTour').textContent='▶ 开始进香巡游';
+ syncRouteStartLabel();
  for(const button of document.querySelectorAll('[data-mode]')){const selected=button.dataset.mode==='roam';button.classList.toggle('on',selected);button.setAttribute('aria-pressed',String(selected))}
  renderCaps();
 }
-function beginRoute(){
- if(routeActive){endRouteNavigation();closeDetail({fromTour:true});return}
+function beginRoute({restart=false,startIndex=null}={}){
+ if(routeActive&&!restart&&startIndex===null){endRouteNavigation();closeDetail({fromTour:true});return}
+ setTourPlaying(false);clearTimeout(routeGoTimer);
  stopTimeline();document.getElementById('timebar').classList.remove('show');routeActive=true;tourOn=true;
- document.body.classList.add('route-active');document.getElementById('btnTour').textContent='结束进香巡游';
+ document.body.classList.add('route-active');document.getElementById('btnTour').textContent='结束巡游';
  document.getElementById('btnTrail').textContent='隐藏巡游路线';trail.setAttribute('visibility','visible');
  for(const button of document.querySelectorAll('[data-mode]')){const selected=button.dataset.mode==='tour';button.classList.toggle('on',selected);button.setAttribute('aria-pressed',String(selected))}
- routeIndex=Math.max(0,AXIS.indexOf(state.cur));routeUI.show(routeIndex);goRoute(routeIndex);
+ const currentIndex=AXIS.indexOf(state.cur);routeIndex=startIndex!==null?startIndex:restart?0:currentIndex>=0?currentIndex:lastRouteIndex;routeIndex=Math.max(0,Math.min(AXIS.length-1,routeIndex));routeUI.show(routeIndex);return goRoute(routeIndex);
 }
-document.getElementById('btnTour').onclick=beginRoute;
+document.getElementById('btnTour').onclick=()=>beginRoute();
+document.getElementById('routeRestart').onclick=()=>beginRoute({restart:true});
+document.getElementById('routeFinishAtlas').onclick=()=>{atlasTab='全部';atlasSearch.value='全域民俗';openAtlas()};
+document.getElementById('routeFinishMap').onclick=()=>closeDetail();
 for(const type of['pointerenter','focus'])document.getElementById('btnTour').addEventListener(type,()=>{if(!document.hidden)for(const p of AXIS.slice(0,2))loadPointImage(p,{warm:true})},{once:true});
 
 document.querySelectorAll('[data-mode]').forEach(ch => ch.addEventListener('click', () => {
@@ -1396,17 +1421,18 @@ window.addEventListener('resize',()=>{const phone=isPhone();if(phone!==previousP
 /* ================= 更多工具菜单（仅管理界面开合） ================= */
 const moreTools = document.getElementById('moreTools'), moreButton = document.getElementById('btnMore');
 function closeMoreTools(restoreFocus = false){
+  if(!moreTools.hidden)visitorFlow?.closeOverlay('menu');
   moreTools.hidden = true;
   moreButton.setAttribute('aria-expanded', 'false');
   hideSearch();
   if (restoreFocus) moreButton.focus();
 }
-moreButton.addEventListener('click', () => {
-  const opening = moreTools.hidden;
-  moreTools.hidden = !opening;
-  moreButton.setAttribute('aria-expanded', String(opening));
-  if(opening)window.TaihaoMotion?.reveal(moreTools);
-});
+function openMoreTools(focusSearch=false){
+ visitorFlow?.openOverlay('menu');stopTimeline();stopTourForReading();hidePop();
+ moreTools.hidden=false;moreButton.setAttribute('aria-expanded','true');window.TaihaoMotion?.reveal(moreTools);
+ if(focusSearch){searchBox.focus({preventScroll:true});searchBox.select();searchBox.scrollIntoView({block:'nearest'});renderSearch()}
+}
+moreButton.addEventListener('click',()=>moreTools.hidden?openMoreTools():closeMoreTools(true));
 document.getElementById('btnMoreClose').addEventListener('click', () => closeMoreTools(true));
 document.addEventListener('pointerdown', e => {
   if (!moreTools.hidden && !e.target.closest('.topbar')) closeMoreTools();
@@ -1443,13 +1469,82 @@ function stopTourForReading(){if(touring){stopTour();if(!document.hidden)notifyV
 for(const type of['pointerdown','wheel','touchstart'])document.getElementById('dcard').addEventListener(type,stopTourForReading,{passive:true});
 document.getElementById('dcardBody').addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(e.key))stopTourForReading()});
 moreButton.addEventListener('click',stopTourForReading);
-document.addEventListener('visibilitychange',()=>{if(document.hidden){stopTour();stopTimeline();hidePop()}});
-window.addEventListener('pagehide',()=>{stopTour();stopTimeline();hidePop();clearTimeout(preloadTimer);clearTimeout(routeGoTimer);cancelCamera();finishPictureFade()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopTour();stopTimeline();pop.querySelector('video')?.pause()}});
+window.addEventListener('pagehide',()=>{saveVisit();stopTour();stopTimeline();pop.querySelector('video')?.pause();detailToken++;routeSelectionToken++;clearTimeout(preloadTimer);clearTimeout(routeGoTimer);cancelCamera();finishPictureFade()});
 for(const button of document.querySelectorAll('[data-layer]'))button.setAttribute('aria-pressed',String(!!LAYERS[button.dataset.layer]));
 for(const button of document.querySelectorAll('[data-mode]'))button.setAttribute('aria-pressed',String(button.classList.contains('on')));
 
+/* Returning to a page restores context without restarting sound or playback. */
+function setDetailPending(point){
+ const pending=document.getElementById('pointPending');pending.hidden=!point;
+ pending.textContent=point?'正在前往 · '+point.name:'';
+ document.getElementById('dcard').setAttribute('aria-busy',String(!!point));
+ for(const region of document.querySelectorAll('#dcardTabs,#pointMedia,#dcard .acts'))region.inert=!!point;
+}
+function syncRouteStartLabel(){document.getElementById('btnTour').textContent=routeActive?'结束巡游':lastRouteIndex>0?'继续巡游':'▶ 开始进香巡游'}
+function updateRouteFinish(){document.getElementById('routeFinish').hidden=!(routeActive&&state.level==='detail'&&state.cur===AXIS.at(-1))}
+function openSceneImage(trigger,preserveAnnotation=false){
+ if(!state.cur)return;stopTourForReading();stopTimeline();
+ if(!preserveAnnotation)hidePop();
+ if(!window.TaihaoImageViewer){notifyVisitor('场景大图暂未载入，请稍后重试。');return}
+ TaihaoImageViewer.open({src:ART[state.cur.id],alt:state.cur.name+'场景插画',title:state.cur.name,trigger});
+}
+document.addEventListener('taihao:viewerchange',event=>visitorFlow?.image(event.detail?.open===true));
+function readVisit(){
+ try{
+  const value=JSON.parse(localStorage.getItem('taihao-visit-v1')||'null'),now=Date.now();
+  if(!value||value.v!==1||!Number.isFinite(value.updatedAt)||now-value.updatedAt>7*86400000||value.updatedAt>now+60000)return null;
+  const point=value.point===null?null:POIS.find(p=>p.id===value.point);if(value.point!==null&&!point)return null;
+  const camera=value.camera;if(!camera||!['x','y','k'].every(k=>Number.isFinite(camera[k])))return null;
+  return {...value,point:point?.id||null,pointName:point?.name||null,route:!!point&&point.cat==='axis'&&value.route===true,tab:['习俗','非遗','提示'].includes(value.tab)?value.tab:'习俗',lastRouteIndex:Number.isInteger(value.lastRouteIndex)&&value.lastRouteIndex>=0&&value.lastRouteIndex<AXIS.length?value.lastRouteIndex:0,camera:{x:camera.x,y:camera.y,k:Math.max(.9,Math.min(4.5,camera.k))}};
+ }catch{return null}
+}
+function saveVisit(){
+ clearTimeout(visitSaveTimer);
+ if(!visitorFlow)return;
+ const snapshot=visitorFlow.snapshot,point=POIS.find(p=>p.id===snapshot.point),camera=state.level==='map'?view:returnView||view;
+ const value={v:1,updatedAt:Date.now(),point:point?.id||null,pointName:point?.name||null,route:!!point&&snapshot.route,tab:snapshot.tab,camera:{x:camera.x,y:camera.y,k:camera.k},lastRouteIndex};
+ try{localStorage.setItem('taihao-visit-v1',JSON.stringify(value))}catch{}
+}
+function scheduleVisitSave(){clearTimeout(visitSaveTimer);visitSaveTimer=setTimeout(saveVisit,150)}
+let initialVisit=null,restoreInitialCamera=false;
+async function restoreVisitor(snapshot,{initial=false}={}){
+ const revision=visitorFlow.revision;
+ stopTour();stopTimeline();
+ if(!snapshot.image&&window.TaihaoImageViewer?.isOpen)TaihaoImageViewer.close({restoreFocus:false,fromHistory:true});
+ if(snapshot.overlay!=='atlas')closeAtlas({restoreFocus:false});
+ if(snapshot.overlay!=='menu')closeMoreTools();
+ if(snapshot.media===null||state.cur?.id!==snapshot.point)hidePop();
+ if(initial&&restoreInitialCamera&&initialVisit&&initialVisit.point===snapshot.point){Object.assign(view,initialVisit.camera);layout()}
+ if(!snapshot.point){
+  if(routeActive)endRouteNavigation();
+  await closeDetail({fromTour:true});
+ }else{
+  const point=POIS.find(p=>p.id===snapshot.point);if(!point)return;
+  ensurePointVisible(point);
+  if(snapshot.route){
+   const index=AXIS.indexOf(point);
+   if(!routeActive)await beginRoute({startIndex:index});
+   else if(state.cur!==point||state.level!=='detail'||routeBusy)await goRoute(index);
+   else{routeIndex=index;lastRouteIndex=index;routeUI.select(index,{silent:true});routeUI.setBusy(false)}
+  }else{
+   if(routeActive)endRouteNavigation();
+   if(state.cur!==point||state.level!=='detail')await openDetail(point);
+  }
+ }
+ if(visitorFlow.revision!==revision)return;
+ visitorFlow.silently(()=>{
+  if(state.cur){cardTab=snapshot.tab;fillCard(state.cur);setDetailPending(null);if(snapshot.media!==null)openSub(state.cur,snapshot.media,dsubs.querySelector(`[data-i="${snapshot.media}"]`),{autoplay:false})}
+  if(snapshot.overlay==='atlas')openAtlas();else if(snapshot.overlay==='menu')openMoreTools(true);
+  if(snapshot.image&&state.cur)openSceneImage(pop.querySelector('.scene-full-image')||document.querySelector('[data-media-action="image"]'),true);
+  renderCaps();syncRouteStartLabel();
+ });
+ saveVisit();
+}
+window.addEventListener('pageshow',event=>{if(event.persisted)visitorFlow?.refresh()});
+
 /* ================= 启动渲染（放在最后，确保所有状态已就绪） ================= */
-window.__taihaoMap={get camera(){return {...view}},get level(){return state.level},get current(){return state.cur?.id||null},get touring(){return touring},get route(){return {active:routeActive,index:routeIndex,busy:routeBusy,playing:touring}},get labels(){return [...hotlayer.querySelectorAll('.label-visible')].map(e=>e.dataset.id)}};
+window.__taihaoMap={get camera(){return {...view}},get level(){return state.level},get current(){return state.cur?.id||null},get touring(){return touring},get route(){return {active:routeActive,index:routeIndex,busy:routeBusy,playing:touring}},get flow(){return visitorFlow?.snapshot},get labels(){return [...hotlayer.querySelectorAll('.label-visible')].map(e=>e.dataset.id)}};
 renderHotspots();
 document.fonts?.ready.then(()=>{labelMetricsDirty=true;queueLabels()});
 window.__taihaoPerf=tourPerf;
@@ -1464,6 +1559,21 @@ function revealMapEntry(){
   document.body.classList.add('map-ready');
   setTimeout(() => hotlayer.classList.add('ready'), window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 140);
 }
+
+/* The URL is shareable; resume links additionally restore the local map position. */
+const visitParams=new URLSearchParams(location.search),freshVisit=visitParams.get('fresh')==='1';
+initialVisit=readVisit();
+restoreInitialCamera=!freshVisit&&!!initialVisit&&(visitParams.get('resume')==='1'||!!history.state?.__taihaoFlow);
+lastRouteIndex=!freshVisit&&initialVisit?initialVisit.lastRouteIndex:0;
+window.__taihaoFlowErrors=[];
+visitorFlow=TaihaoVisitorFlow.create({
+ ids:POIS.map(p=>p.id),axisIds:AXIS.map(p=>p.id),noteCounts:Object.fromEntries(POIS.map(p=>[p.id,(SUBS[p.id]||[]).length])),
+ initialState:!freshVisit&&visitParams.get('resume')==='1'&&initialVisit?{point:initialVisit.point,route:initialVisit.route,tab:initialVisit.tab}:null,
+ onRestore:restoreVisitor,onCommit:scheduleVisitSave,
+ onError:error=>{window.__taihaoFlowErrors.push(String(error));notifyVisitor('这一处没有完整打开，请重新选择点位。');console.error(error)}
+});
+syncRouteStartLabel();
+
 if(entryMapImage.complete){
   revealMapEntry();
 }else{

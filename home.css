@@ -52,3 +52,23 @@ body{min-height:100svh}.site-header{inset:15px 24px auto}.hero-note{display:none
 .entry{bottom:calc(61px + env(safe-area-inset-bottom))}
 .fallback-heading h1{font-size:clamp(28px,6vw,44px)}
 }
+
+/* A saved visit adds one clear restart choice without changing the gallery. */
+.restart-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;
+ color:#79644a;font-size:11px;letter-spacing:1px;text-decoration:underline;text-underline-offset:5px}
+.restart-link[hidden]{display:none}
+.restart-link:hover{color:var(--red)}
+.has-resume .entry{gap:8px;max-width:calc(100vw - 40px)}
+.entry-copy{max-width:calc(100vw - 44px);overflow:hidden;text-overflow:ellipsis}
+@media(max-width:759px) and (max-height:620px){body{min-height:100svh}}
+@media(max-height:560px) and (min-width:480px){
+ .has-resume .entry{display:grid;grid-template-columns:minmax(0,220px) minmax(0,180px);
+  gap:6px 12px;width:min(412px,calc(100vw - 48px))}
+ .has-resume .entry-copy{display:block;grid-column:1/-1;text-align:center;font-size:11px;letter-spacing:1px}
+ .has-resume .enter-link{min-width:0;min-height:44px}
+ .has-resume .restart-link{min-width:0;padding:0 8px;font-size:10px}
+}
+
+.has-resume .entry-copy{padding:3px 10px;border-radius:3px;background:rgba(245,239,227,.96)}
+@media(max-width:759px) and (min-height:561px) and (max-height:620px){.has-resume .entry{bottom:98px}}
+@media(max-height:560px) and (min-width:480px){.has-resume .entry-copy{width:fit-content;justify-self:center}}

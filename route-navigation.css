@@ -30,19 +30,19 @@
 .route-viewport.is-native .route-track{position:relative;width:max-content;min-width:100%;padding-inline:calc(50% - 71px)}
 .route-viewport.is-native,.route-viewport.is-native .route-track{touch-action:auto}
 .route-viewport.is-native .route-slide{scroll-snap-align:center}
-@media(max-width:679px){
-.route-dock{top:calc(var(--toolbar-height,112px) + 4px);width:calc(100% - 20px);height:92px;padding:0 8px;grid-template-columns:minmax(0,1fr);grid-template-rows:36px 56px;gap:0;border-radius:8px}
-.route-controls{justify-content:space-between;gap:6px;height:36px}
-.route-control{min-height:32px;padding:0 10px;font-size:11px}
+@media(max-width:680px){
+.route-dock{top:calc(var(--toolbar-height,112px) + 4px);width:calc(100% - 20px);height:100px;padding:0 8px;grid-template-columns:minmax(0,1fr);grid-template-rows:44px 56px;gap:0;border-radius:8px}
+.route-controls{justify-content:space-between;gap:6px;height:44px}
+.route-control{min-height:44px;padding:0 10px;font-size:11px}
 .route-play{min-width:98px}.route-position{min-width:46px;font-size:10px}
-.route-stations{height:56px;grid-template-columns:28px minmax(0,1fr) 28px;gap:4px}
-.route-arrow{min-width:28px;min-height:44px;font-size:26px}
+.route-stations{height:56px;grid-template-columns:44px minmax(0,1fr) 44px;gap:4px}
+.route-arrow{min-width:44px;min-height:44px;font-size:26px}
 .route-slide{flex-basis:128px}.route-stop{height:48px;padding:6px 9px;gap:7px}.route-number{font-size:15px}.route-name{font-size:11px}
 .route-viewport.is-native .route-track{padding-inline:calc(50% - 64px)}
 }
-@media(min-width:480px) and (max-width:679px) and (max-height:520px){
+@media(min-width:480px) and (max-width:680px) and (max-height:520px){
 .route-dock{height:68px;padding:8px;grid-template-columns:auto minmax(0,1fr);grid-template-rows:52px;gap:8px}
-.route-controls{height:44px;justify-content:flex-start}.route-control{min-height:36px;padding:0 8px;font-size:10px}.route-play{min-width:88px}.route-position{display:none}
+.route-controls{height:44px;justify-content:flex-start}.route-control{min-height:44px;padding:0 8px;font-size:10px}.route-play{min-width:88px}.route-position{display:none}
 .route-stations{height:52px}.route-slide{flex-basis:116px}.route-stop{height:48px;padding:6px 8px}.route-step{font-size:8px}
 .route-viewport.is-native .route-track{padding-inline:calc(50% - 58px)}
 }

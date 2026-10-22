@@ -1,0 +1,8 @@
+/* Same warm paper system; navigation stays separate from reading. */
+.point-pending{margin:8px 0;padding:7px 9px;border-radius:4px;background:#f4e7d1;color:#855332;font-size:11px;line-height:1.6}
+.point-pending[hidden],.route-finish[hidden]{display:none!important}
+.route-finish{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #dfd0b9}
+.route-finish p{grid-column:1/-1;margin:0 0 2px;font-size:12px;line-height:1.8;color:#70593e}
+.route-finish button{min-height:44px;padding:8px;border:1px solid #cbb797;border-radius:5px;background:#faf1df;color:#754b2c;font:inherit;font-size:11px;cursor:pointer}
+.route-finish button:first-of-type{background:#b33b24;border-color:#b33b24;color:#fff8eb}
+@media(max-width:680px){.route-active .dimg{top:calc(var(--toolbar-height) + 110px)}}

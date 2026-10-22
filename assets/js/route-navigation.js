@@ -21,7 +21,7 @@
     }
     const root = element('nav','route-dock');root.id = 'routeDock';root.hidden = true;root.setAttribute('aria-label','进香巡游站点');root.setAttribute('aria-busy','false');
     const controls = element('div','route-controls');
-    const exit = button('routeExit','route-control route-exit','← 返回总览','结束巡游，返回地图总览');
+    const exit = button('routeExit','route-control route-exit','← 返回地图','结束巡游，返回地图');
     const play = button('routePlay','route-control route-play','▶ 自动巡游','自动播放巡游');play.setAttribute('aria-pressed','false');
     const position = element('span','route-position');position.id = 'routePosition';position.setAttribute('aria-live','polite');position.setAttribute('aria-atomic','true');
     controls.append(exit,play,position);
