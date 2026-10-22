@@ -41,3 +41,14 @@ body{min-height:100svh}.site-header{inset:15px 24px auto}.hero-note{display:none
 .is-entering .hero-note,.is-entering .entry,.is-entering .site-header,.is-entering .site-footer{opacity:0}
 .is-entering a{pointer-events:none}
 @media(prefers-reduced-motion:reduce){.gallery,.hero-note,.entry,.site-header,.site-footer{transition:none}}
+
+/* Keep the HTML title and entrance readable when decorative photos fail. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.motion-toggle:disabled{cursor:default;opacity:.7}
+.gesture-note{visibility:hidden}.gallery-ready .gesture-note{visibility:visible}.gallery-failed .gesture-note{visibility:hidden}
+@media(max-height:560px){
+.site-header{left:max(24px,env(safe-area-inset-left));right:max(24px,env(safe-area-inset-right))}
+.site-footer{left:max(24px,env(safe-area-inset-left));right:max(24px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom))}
+.entry{bottom:calc(61px + env(safe-area-inset-bottom))}
+.fallback-heading h1{font-size:clamp(28px,6vw,44px)}
+}

@@ -297,7 +297,7 @@
     .hotlayer.ready .hot{opacity:1}
   }
 </style>
-<link rel="stylesheet" href="map-experience.css?v=interaction1">
+<link rel="stylesheet" href="map-experience.css?v=refine2">
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -333,7 +333,7 @@ for (const type of ['pageswap','pagereveal']) {
       </div>
     </div>
 
-<div class="map-controls" aria-label="地图视野控制"><button id="zoomIn" type="button" aria-label="放大地图">＋</button><button id="zoomOut" type="button" aria-label="缩小地图">−</button><button id="mapOverview" type="button" aria-label="查看地图总览">全</button></div><div class="map-caption" id="mapCaption" aria-live="polite">点选风物，走近庙会</div>
+<div class="map-controls" aria-label="地图视野控制"><button id="zoomIn" type="button" aria-label="放大地图">＋</button><button id="zoomOut" type="button" aria-label="缩小地图">−</button><button id="mapOverview" type="button" aria-label="查看地图总览">全</button></div><button type="button" class="map-caption" id="mapCaption" aria-label="查找庙会点位">查找24处点位 →</button>
     <div class="legend">
       <span class="map-desktop-hint">拖拽平移 · 滚轮缩放</span><span class="map-touch-hint">单指漫游 · 双指缩放</span> · 点击光点探索<br>
       <i style="background:#B33B24"></i>中轴线　<i style="background:#3E7C6F"></i>东片区　<i style="background:#3D6B8C"></i>西片区　<i style="background:#C99A2C"></i>全域民俗
@@ -357,19 +357,19 @@ for (const type of ['pageswap','pagereveal']) {
       <div class="tile">
         <div>进香盖印 <b id="stampN">0</b>/9</div>
         <div id="stampDots"></div>
-        <div id="stampReset" style="cursor:pointer;color:#8d8577;text-decoration:underline">重置</div>
+        <div class="stamp-save-note">记录保存在本机</div>
       </div>
     </div>
 
     <div id="timebar">
       <div class="trow">
-        <span class="tt">会期</span>
+        <span class="tt">会期示意</span>
         <span class="day" id="tbDay">二月初二</span>
         <input type="range" id="tbRange" min="0" max="31" value="0">
-        <button class="btn" id="tbPlay">▶</button>
+        <button class="btn" id="tbPlay" type="button" aria-label="播放会期示意" aria-pressed="false">播放</button>
         <span class="ev" id="tbEv">公祭大典 · 钟鼓九响</span>
       </div>
-      <div class="marks"><span>二月初二</span><span>二月十五</span><span>三月初三</span></div>
+      <div class="marks"><span>二月初二</span><span>二月十五</span><span>三月初三</span></div><p class="timeline-note">会期与热度为模拟示意，非实时客流。</p>
     </div>
   </div>
 
@@ -386,8 +386,8 @@ for (const type of ['pageswap','pagereveal']) {
       <div class="tool-menu-heading"><h2>地图工具</h2><button class="tool-close" id="btnMoreClose" type="button" aria-label="收起更多工具">✕</button></div>
       <div class="tool-section tool-search">
         <label class="tool-label" for="search">寻找点位</label>
-        <input id="search" type="search" placeholder="搜索建筑、民俗、美食…" autocomplete="off" aria-controls="sugg">
-        <div id="sugg" aria-live="polite"></div>
+        <input id="search" type="search" placeholder="搜索建筑、民俗、美食…" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugg">
+        <div id="sugg" role="listbox" aria-label="点位搜索结果"></div><p id="searchStatus" class="search-status" role="status"></p>
       </div>
       <div class="tool-section">
         <p class="tool-label">浏览方式</p>
@@ -402,14 +402,14 @@ for (const type of ['pageswap','pagereveal']) {
         <div class="tool-options">
           <button class="chip lay on" data-layer="bld" type="button"><i style="background:#B33B24"></i>建筑层</button>
           <button class="chip lay on" data-layer="folk" type="button"><i style="background:#C99A2C"></i>民俗层</button>
-          <button class="chip lay" data-layer="heat" type="button"><i style="background:#D85A30"></i>人流热度层</button>
+          <button class="chip lay" data-layer="heat" type="button"><i style="background:#D85A30"></i>人流热度示意</button>
         </div>
       </div>
 <div class="tool-section sound-settings"><p class="tool-label">声音设置</p><label for="soundVolume">音量 <output id="soundVolumeValue">28%</output></label><input id="soundVolume" type="range" min="0" max="100" value="28" aria-label="提示音音量"><button class="btn" id="soundMenuToggle" type="button" aria-pressed="false">开启声音</button><button class="btn" id="soundPreview" type="button">试听合成音景</button><p class="sound-note" id="soundStatus" aria-live="polite">合成音景，非现场录音。需手动开启。</p></div>
       <div class="tool-section tool-utilities">
         <button class="btn" id="btnTrail" type="button">显示巡游路线</button>
-        <button class="btn" id="btnReset" type="button">复位地图</button>
-        <button class="btn" id="btnCal" type="button" aria-expanded="false" aria-controls="calbox">校准点位</button>
+        <button class="btn" id="btnReset" type="button">复位地图</button><button class="btn" id="btnCal" type="button" aria-expanded="false" aria-controls="calbox" hidden>校准点位</button>
+        <button class="btn" id="stampReset" type="button">清空盖印记录</button>
       </div>
     </section>
   </header>
@@ -428,9 +428,9 @@ for (const type of ['pageswap','pagereveal']) {
       <button class="close" id="dcardClose" type="button" aria-label="返回地图">✕</button>
       <span class="cat" id="dcardCat"></span>
       <h3 id="dcardTitle"></h3>
-      <div class="step" id="dcardStep"></div>
-      <div class="dtabs" id="dcardTabs"></div>
-      <div class="dbody" id="dcardBody"></div>
+      <div class="step" id="dcardStep"></div><div id="pointMedia" class="media-actions" aria-label="点位图片、视频与注解"></div>
+      <div class="dtabs" id="dcardTabs" role="tablist" aria-label="点位说明"></div>
+      <div class="dbody" id="dcardBody" role="tabpanel" tabindex="0" aria-label="点位说明正文"></div>
       <div class="acts">
         <button class="ab audio" id="dAudioBtn" type="button">▷ 试听合成音景</button>
         <button class="ab stamp" id="dStampBtn" type="button">在此进香 · 盖香印</button>
@@ -438,18 +438,18 @@ for (const type of ['pageswap','pagereveal']) {
       <div class="tags" id="dcardTags"></div>
     </div>
 
-    <div class="pop" id="pop"><button type="button" class="x" id="popX" aria-label="关闭媒体">✕</button><b></b><span class="pmedia"></span><span class="txt"></span></div>
+    <div class="pop" id="pop"><button type="button" class="x" id="popX" aria-label="关闭媒体">✕</button><b></b><span class="pmedia"></span><span class="txt"></span><div class="pop-nav"></div></div>
   </div>
 
   <div id="atlas" role="dialog" aria-modal="true" aria-label="民俗图鉴">
     <div class="box">
       <div class="atlas-heading"><h2>民俗图鉴 · 全部点位</h2><button class="tool-close" id="atlasClose" type="button" aria-label="关闭图鉴">✕</button></div>
-      <div class="atabs" id="atlasTabs"></div>
+      <div class="atlas-search-row"><label class="sr-only" for="atlasSearch">搜索图鉴</label><input type="search" id="atlasSearch" placeholder="找一处建筑，或一种风物…" autocomplete="off"><p id="atlasCount" role="status"></p></div><div class="atabs" id="atlasTabs" aria-label="图鉴分类"></div>
       <div class="grid" id="atlasGrid"></div>
     </div>
   </div>
 
-  <div id="stampFx">进香</div>
+  <div id="stampFx">进香</div><div class="site-notice" id="siteNotice" role="status" hidden><span id="noticeText"></span><button type="button" id="noticeUndo" hidden>撤销</button></div>
 
 
 </div>
@@ -582,7 +582,7 @@ const POIS = [
     tip:'制作流程：选土 → 捏塑 → 晾晒 → 煮染 → 上彩。上彩工具是高粱杆做的“杆笔”“挺笔”，先以白色画出基本轮廓（形色特征），再用红、黄、绿、粉红色，以点、线结构的图案加以彩绘。',
     tags:['陵狗·灵狗','黑底彩绘','泥塑类国家级非遗'] },
   { id:'f4', cat:'folk', step:'全域民俗 · 集市', name:'淮阳布老虎', px:812, py:764, lx:132, ly:28,
-    desc:'河南淮阳太昊陵庙会上的标志性民间手工艺品，寓意驱邪纳吉、生生不息，也是当地国家级非物质文化遗产的重要内容之一。最早与虎图腾崇拜有关，后来逐渐从图腾崇拜变成祈福避灾、保佑孩童平安的吉祥物。庙会里最常见：每年农历二月二到三月三的太昊伏羲陵庙会上，布老虎是最热门的纪念品，造型多样、颜色鲜艳。',
+    desc:'河南淮阳太昊陵庙会上的标志性民间手工艺品，寓意驱邪纳吉、生生不息，也是庙会上的常见民间工艺。最早与虎图腾崇拜有关，后来逐渐从图腾崇拜变成祈福避灾、保佑孩童平安的吉祥物。庙会里最常见：每年农历二月二到三月三的太昊伏羲陵庙会上，布老虎是最热门的纪念品，造型多样、颜色鲜艳。',
     tip:'相传上古时期天塌地陷，人间只剩下伏羲女娲兄妹二人。为繁衍人类，他们各自去寻找配偶，遍寻第三人无果，便商定滚石为媒、合而成婚。伏羲因羞于见女娲，就扮成老虎模样以草遮面与她成婚，使华夏民族得以延续。先民们为表达对伏羲和女娲的怀念与敬仰，便制作布老虎以示纪念。',
     tags:['驱邪纳吉','生生不息','虎图腾'] },
   { id:'f3', cat:'folk', step:'全域民俗 · 小吃', name:'吃压缩馍', px:1075, py:747, lx:104, ly:-38,
@@ -661,8 +661,8 @@ const SUBS = {
 
 /* 非遗页签的专属说明（无专属者回落到统一文案） */
 SUBS.HERITAGE = {
-  f2:'泥塑（淮阳泥泥狗）· <b>2014 年第四批</b>国家级非物质文化遗产。以社会传承和师带徒传承为主，通过口传身授世代相传；它凸显并强化了人类深层意识中的生殖崇拜、动物崇拜、祖先崇拜等观念，为历史学和人类学研究提供了生动案例。其与淮阳太昊陵庙会祭祖古俗相互印证、融合，用以缅怀祖先、祭祀人祖繁衍人类之功，具有艺术、社会和文化价值。',
-  f4:'淮阳布老虎 · 太昊陵庙会标志性民间手工艺品，寓意<b>驱邪纳吉、生生不息</b>，属当地国家级非物质文化遗产的重要内容之一。制作需经裁剪、造型、填充、绘画等六七道工序、几十个步骤，既考验制作者的细致程度，也极其需要创作功力。'
+  f2:'泥塑（淮阳泥泥狗）· <b>2014 年第四批</b>国家级非物质文化遗产代表性项目名录的扩展项目。以社会传承和师带徒传承为主，通过口传身授世代相传；它凸显并强化了人类深层意识中的生殖崇拜、动物崇拜、祖先崇拜等观念，为历史学和人类学研究提供了生动案例。其与淮阳太昊陵庙会祭祖古俗相互印证、融合，用以缅怀祖先、祭祀人祖繁衍人类之功，具有艺术、社会和文化价值。',
+  f4:'淮阳布老虎于 <b>2015 年入选周口市市级非遗保护项目</b>。布艺造型寄托驱邪纳吉、生生不息的祝愿。制作需经裁剪、造型、填充、绘画等六七道工序、几十个步骤，既考验制作者的细致程度，也极其需要创作功力。'
 };
 
 /* ================= 视图（平移 / 缩放 / 布局） ================= */
@@ -839,13 +839,13 @@ function refreshHeat() {
 document.querySelectorAll('.chip.lay').forEach(ch => ch.addEventListener('click', () => {
   const k = ch.dataset.layer;
   LAYERS[k] = !LAYERS[k];
-  ch.classList.toggle('on', LAYERS[k]);
+  ch.classList.toggle('on', LAYERS[k]);ch.setAttribute('aria-pressed',String(LAYERS[k]));
   applyLayers();
 }));
 
 /* ================= 会期时间轴（农历二月初二 — 三月初三） ================= */
 function numCN(n){const A=['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];return A[n]||n;}
-const dayName = d => d <= 28 ? '二月' + numCN(d + 2) : '三月初' + numCN(d - 28);
+const dayName = d => d <= 28 ? '二月' + numCN(d + 2) : '三月' + numCN(d - 28);
 function heatI(d){
   let v = Math.max(0.28, 0.62 - d * 0.012);
   if (d === 0) v = 0.85;
@@ -861,17 +861,17 @@ function setDay(d){
   document.getElementById('tbRange').value = d;
   refreshHeat();
 }
-document.getElementById('tbRange').addEventListener('input', e => setDay(+e.target.value));
+document.getElementById('tbRange').addEventListener('input',e=>{stopTimeline();setDay(+e.target.value)});
 setDay(0);
-let tlPlaying = false;
-document.getElementById('tbPlay').onclick = async function(){
-  if (tlPlaying) return; tlPlaying = true;
-  for (let d = (curDay + 1) % 32; ; d = (d + 1) % 32) {
-    setDay(d);
-    if (d === 0) break;
-    await wait(d === 13 || d === 31 ? 1400 : 380);
-  }
-  tlPlaying = false;
+let tlPlaying=false,timelineRun=0;
+function stopTimeline(){timelineRun++;tlPlaying=false;const button=document.getElementById('tbPlay');button.textContent='播放';button.setAttribute('aria-label','播放会期示意');button.setAttribute('aria-pressed','false')}
+document.getElementById('tbPlay').onclick=async function(){
+ if(tlPlaying){stopTimeline();return}
+ const run=++timelineRun;tlPlaying=true;this.textContent='暂停';this.setAttribute('aria-label','暂停会期示意');this.setAttribute('aria-pressed','true');
+ for(let d=curDay>=31?0:curDay+1;d<=31;d++){
+  if(run!==timelineRun)return;setDay(d);await wait(d===13||d===31?1400:380);
+ }
+ if(run===timelineRun)stopTimeline();
 };
 
 /* ================= 巡游路线 ================= */
@@ -924,49 +924,57 @@ function safePlay(v){
   try { const r = v.play(); if (r && typeof r.catch === 'function') r.catch(() => {}); }
   catch (e) {}
 }
+let activeSub=null,popTrigger=null;
+function positionPop(){
+ if(!pop.classList.contains('show'))return;
+ const safeTop=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--toolbar-height'))+60;
+ pop.style.maxHeight=Math.max(80,innerHeight-safeTop-12)+'px';
+ const anchor=popTrigger?.isConnected&&popTrigger.getClientRects().length?popTrigger.getBoundingClientRect():{left:innerWidth/2,right:innerWidth/2,top:safeTop};
+ const width=pop.offsetWidth,height=pop.offsetHeight;
+ let x=anchor.right+12;if(x+width>innerWidth-12)x=anchor.left-width-12;
+ pop.style.left=Math.max(12,Math.min(x,innerWidth-width-12))+'px';
+ pop.style.top=Math.max(safeTop,Math.min(anchor.top,innerHeight-height-12))+'px';
+}
+function openSub(p,index,trigger){
+ const item=(SUBS[p.id]||[])[index];if(!item)return;
+ stopTourForReading();const oldVideo=pop.querySelector('video');if(oldVideo)oldVideo.pause();
+ activeSub={point:p,index};popTrigger=trigger||popTrigger;
+ dsubs.querySelectorAll('.sub').forEach(el=>el.classList.toggle('on',+el.dataset.i===index));
+ pop.querySelector('b').textContent=item.t;
+ const text=pop.querySelector('.txt');text.textContent=item.d;text.style.display=item.d?'':'none';
+ const media=pop.querySelector('.pmedia');
+ if(item.v){
+  media.innerHTML='<span class="vbox"><video controls playsinline preload="metadata"></video></span>';
+  const video=media.querySelector('video');video.src=videoUrl(item.v);safePlay(video);
+ }else if(item.img){media.innerHTML=`<img class="pimg" src="${item.img}" alt="${item.t}" decoding="async">`}
+ else media.innerHTML='';
+ const entries=SUBS[p.id]||[],footer=pop.querySelector('.pop-nav');
+ footer.innerHTML=`<button type="button" data-sub-step="-1" ${index===0?'disabled':''} aria-label="上一条场景注解">上一条</button><span>${index+1} / ${entries.length}</span><button type="button" data-sub-step="1" ${index===entries.length-1?'disabled':''} aria-label="下一条场景注解">下一条</button>`;
+ pop.classList.toggle('wide',!!(item.v||item.img));pop.classList.add('show');positionPop();
+ media.querySelector('img')?.addEventListener('load',positionPop,{once:true});media.querySelector('video')?.addEventListener('loadedmetadata',positionPop,{once:true});
+ document.getElementById('popX').focus({preventScroll:true});
+}
 function fillSubs(p){
-  dsubs.innerHTML = (SUBS[p.id] || []).map((s, i) =>
-    `<button type="button" aria-label="${s.t}" class="sub ${s.v ? 'vid' : ''}" data-i="${i}" style="left:${s.x}%;top:${s.y}%">` +
-    `${(s.v || s.img) ? '▶' : i + 1}</button>`).join('');
-  dsubs.querySelectorAll('.sub').forEach(el => el.addEventListener('click', ev => {
-    ev.stopPropagation();
-    const s = SUBS[p.id][+el.dataset.i];
-    dsubs.querySelectorAll('.sub').forEach(x => x.classList.remove('on'));
-    el.classList.add('on');
-    pop.querySelector('b').textContent = s.t;
-    const pt = pop.querySelector('.txt');
-    pt.textContent = s.d; pt.style.display = s.d ? '' : 'none';
-    const pm = pop.querySelector('.pmedia');
-    const isMedia = !!(s.v || s.img);
-    if (s.v) {                                   /* 视频栏：只显示画面，不附文字解说 */
-      pm.innerHTML = `<span class="vbox"><video playsinline preload="auto"></video><i class="vplay"></i></span>`;
-      const vv = pm.querySelector('video'), vb = pm.querySelector('.vbox');
-      vv.src = videoUrl(s.v);
-      vb.addEventListener('click', () => { vv.paused ? safePlay(vv) : vv.pause(); });
-      vv.addEventListener('play',  () => vb.classList.add('playing'));
-      vv.addEventListener('pause', () => vb.classList.remove('playing'));
-      vv.addEventListener('ended', () => vb.classList.remove('playing'));
-      safePlay(vv);                              /* 若被浏览器拦截，点击画面即可播放 */
-    } else if (s.img) {                          /* 图片浮层：图 + 可选短说明 */
-      pm.innerHTML = `<img class="pimg" src="${s.img}" alt="">`;
-    } else pm.innerHTML = '';
-    pop.classList.toggle('wide', isMedia);
-    pop.classList.add('show');
-    const r = el.getBoundingClientRect();
-    const pw = Math.min(isMedia ? 330 : 250,window.innerWidth-24);
-    let lx = r.right + 14, ly = r.top - 6;
-    if (lx + pw > window.innerWidth - 16) lx = r.left - pw - 14;
-    ly = Math.max(120, Math.min(ly, window.innerHeight - (s.v ? 390 : (s.img ? 330 : 150))));
-    pop.style.left = Math.max(12,Math.min(lx,window.innerWidth-pw-12)) + 'px'; pop.style.top = ly + 'px';
-  }));
+ dsubs.innerHTML=(SUBS[p.id]||[]).map((s,i)=>`<button type="button" aria-label="${s.t}${s.v?'，视频':s.img?'，图片':''}" class="sub ${s.v?'vid':''}" data-i="${i}" style="left:${s.x}%;top:${s.y}%">${s.v?'▶':s.img?'图':i+1}</button>`).join('');
+ dsubs.querySelectorAll('.sub').forEach(el=>el.onclick=e=>{e.stopPropagation();openSub(p,+el.dataset.i,el)});
 }
-function hidePop(){
-  const v = pop.querySelector('video'); if (v) { try { v.pause(); } catch (e) {} }
-  pop.classList.remove('show');
-  dsubs.querySelectorAll('.sub').forEach(x=>x.classList.remove('on'));
-  setTimeout(() => { const m = pop.querySelector('.pmedia'); if (m && !pop.classList.contains('show')) m.innerHTML = ''; }, 260);
+function fillPointMedia(p){
+ const entries=SUBS[p.id]||[],video=entries.findIndex(e=>e.v),image=entries.findIndex(e=>e.img),text=entries.findIndex(e=>!e.v&&!e.img),items=[];
+ if(video>=0)items.push({index:video,label:'看民俗短片'});
+ if(image>=0)items.push({index:image,label:'查看细节图'});
+ if(text>=0)items.push({index:text,label:'场景注解'});
+ const box=document.getElementById('pointMedia');box.hidden=!items.length;
+ box.innerHTML=items.map(item=>`<button type="button" class="media-action" data-sub-index="${item.index}">${item.label} ↗</button>`).join('');
+ box.onclick=e=>{const button=e.target.closest('[data-sub-index]');if(button){e.stopPropagation();openSub(state.cur,+button.dataset.subIndex,button)}};
 }
-document.getElementById('popX').onclick = hidePop;
+function hidePop(restoreFocus=false){
+ const video=pop.querySelector('video');if(video)video.pause();pop.classList.remove('show');activeSub=null;
+ dsubs.querySelectorAll('.sub').forEach(x=>x.classList.remove('on'));
+ if(restoreFocus&&popTrigger?.isConnected&&popTrigger.getClientRects().length)popTrigger.focus({preventScroll:true});
+ setTimeout(()=>{if(!pop.classList.contains('show'))pop.querySelector('.pmedia').innerHTML=''},220);
+}
+document.getElementById('popX').onclick=()=>hidePop(true);
+pop.querySelector('.pop-nav').onclick=e=>{const button=e.target.closest('[data-sub-step]');if(button&&activeSub)openSub(activeSub.point,activeSub.index+Number(button.dataset.subStep),popTrigger)};
 
 let cardTab = '习俗';
 function fillCard(p){
@@ -976,18 +984,24 @@ function fillCard(p){
   document.getElementById('dcardStep').textContent = p.step;
   document.getElementById('dcardTags').innerHTML = p.tags.map(t => `<i>${t}</i>`).join('');
   const tabs = ['习俗','非遗','提示'];
-  document.getElementById('dcardTabs').innerHTML =
-    tabs.map(t => `<button type="button" class="dtab ${cardTab===t?'on':''}" data-t="${t}">${t}</button>`).join('');
+  const tabBar=document.getElementById('dcardTabs');
+  if(!tabBar.children.length)tabBar.innerHTML=tabs.map((t,i)=>`<button type="button" id="detail-tab-${i}" role="tab" aria-controls="dcardBody" class="dtab" data-t="${t}">${t}</button>`).join('');
+  for(const tab of tabBar.children){const selected=tab.dataset.t===cardTab;tab.classList.toggle('on',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1}
+  document.getElementById('dcardBody').setAttribute('aria-labelledby','detail-tab-'+tabs.indexOf(cardTab));
   const heritage = (SUBS.HERITAGE && SUBS.HERITAGE[p.id]) ||
-    '属「太昊伏羲祭典」组成部分 —— 2006 年首批国家级非物质文化遗产。';
+    '相关非遗背景：太昊伏羲祭典于 2006 年列入第一批国家级非物质文化遗产名录，申报地区为河南省淮阳县。此处介绍相关文化背景，并非将单体建筑认定为非遗项目。';
   const body = document.getElementById('dcardBody');
   if (cardTab === '习俗')      body.innerHTML = p.desc;
-  else if (cardTab === '非遗') body.innerHTML = (ART[p.id] ? `<img src="${ART[p.id]}" alt="${p.name}">` : '') + heritage;
+  else if(cardTab==='非遗'){
+    const source=p.id==='f4'?'https://www.zhoukou.gov.cn/page_pc/xwzx/xqdt/xqdt/articleac707654e6b84e90aea64ea61c73f07b.html':p.id==='f2'?'https://www.ihchina.cn/art/detail/id/14053.html':'https://www.ihchina.cn/art/detail/id/14991.html';
+    body.innerHTML=heritage+`<p class="heritage-source"><a href="${source}" target="_blank" rel="noopener noreferrer">资料来源：${p.id==='f4'?'周口市人民政府':'中国非物质文化遗产网'} ↗</a></p>`;
+  }
   else                         body.innerHTML = p.tip
       ? `<div class="tip">${p.tip}</div>`
       : '按现行管理规范文明进香，遵守景区文物保护规定。';
-  document.getElementById('dcardTabs').querySelectorAll('.dtab').forEach(t =>
-    t.addEventListener('click', () => { cardTab = t.dataset.t; fillCard(p); }));
+  tabBar.onclick=e=>{const tab=e.target.closest('.dtab');if(!tab)return;stopTourForReading();cardTab=tab.dataset.t;fillCard(state.cur)};
+  tabBar.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();e.stopPropagation();stopTourForReading();let i=tabs.indexOf(cardTab);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;cardTab=tabs[i];fillCard(state.cur);tabBar.children[i].focus()};
+  fillPointMedia(p);
   refreshStampBtn();
 }
 document.getElementById('dcardClose').onclick = () => closeDetail();
@@ -1001,7 +1015,8 @@ async function loadPointImage(p){
  if(!ART[p.id])return;const image=new Image();image.src=ART[p.id];
  try{await Promise.race([image.decode(),wait(1800)])}catch{}
 }
-async function openDetail(p){
+async function openDetail(p,{fromTour=false}={}){
+ if(!fromTour)stopTourForReading();
  if(state.level==='detail')return swapDetail(p);
  const token=++detailToken;if(state.level==='map'){returnView={...view};returnFocus=document.activeElement}
  state.level='opening';state.cur=p;cardTab='习俗';highlight(p);
@@ -1029,7 +1044,7 @@ async function closeDetail({fromTour=false}={}){
  ++detailToken;hidePop();window.TaihaoSound?.stop();
  detailview.classList.remove('in','fading');detailview.classList.add('out');mapview.classList.remove('pushing');mapview.inert=false;
  document.querySelector('.stage').classList.remove('has-detail');const token=detailToken;state.level='map';state.cur=null;highlight({id:null});renderCaps();
- document.getElementById('mapCaption').textContent='点选风物，走近庙会';if(returnView)moveCamera(returnView,.45);
+ document.getElementById('mapCaption').textContent='查找24处点位 →';if(returnView)moveCamera(returnView,.45);
  await wait(reducedMotion.matches?0:360);if(token!==detailToken)return;
  detailview.classList.remove('out');detailview.style.display='none';if(returnFocus?.isConnected&&returnFocus.getClientRects().length&&!returnFocus.closest('[hidden],[inert]'))returnFocus.focus({preventScroll:true});else mapview.focus({preventScroll:true});returnView=null;
 }
@@ -1056,73 +1071,104 @@ capsbar.addEventListener('click', e => {
   const c = e.target.closest('.cap'); if (!c || c.classList.contains('off')) return;
   const a = c.dataset.act;
   if (a === 'home') { closeDetail(); }
+  if(a==='prev'||a==='next')stopTourForReading();
   if (a === 'prev') { const i = SEQ.indexOf(state.cur); if (i > 0) swapDetail(SEQ[i-1]); }
   if (a === 'next') { const i = SEQ.indexOf(state.cur); if (i < SEQ.length-1) swapDetail(SEQ[i+1]); }
 });
 renderCaps();
 window.addEventListener('keydown', e => {
   if(e.target.closest('input,textarea,select,[contenteditable="true"]'))return;
-  if(e.key==='Escape'){if(atlas.classList.contains('show')){closeAtlas();return}if(pop.classList.contains('show')){hidePop();return}if(!moreTools.hidden)return;closeDetail();}
+  if(e.key==='Escape'){if(atlas.classList.contains('show')){closeAtlas();return}if(pop.classList.contains('show')){hidePop(true);return}if(!moreTools.hidden)return;closeDetail();}
+  if(atlas.classList.contains('show')||!moreTools.hidden||pop.classList.contains('show'))return;
   if (state.level === 'detail' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    stopTourForReading();
     const i = SEQ.indexOf(state.cur);
     const t = SEQ[i + (e.key === 'ArrowRight' ? 1 : -1)];
     if (t) swapDetail(t);
   }
 });
 
-/* ================= 民俗图鉴 ================= */
-const atlas = document.getElementById('atlas'), atlasGrid = document.getElementById('atlasGrid'), atlasTabs = document.getElementById('atlasTabs');
-let atlasTab = '全部';
+/* Visitor navigation: searchable index, predictable focus and visible feedback. */
+const atlas=document.getElementById('atlas'),atlasGrid=document.getElementById('atlasGrid'),atlasTabs=document.getElementById('atlasTabs'),atlasSearch=document.getElementById('atlasSearch');
+let atlasTab='全部',atlasInertState=null;
+const pointMatches=(p,query)=>!query||[p.name,p.step,KIND[p.id],...p.tags].join(' ').toLocaleLowerCase().includes(query.toLocaleLowerCase());
 function renderAtlas(){
-  const tabs = ['全部','建筑','民俗','非遗','美食'];
-  atlasTabs.innerHTML = tabs.map(t => {
-    const n = t === '全部' ? POIS.length : POIS.filter(p => KIND[p.id] === t).length;
-    return `<button type="button" class="chip ${atlasTab===t?'on':''}" data-t="${t}">${t} ${n}</button>`;
-  }).join('');
-  atlasGrid.innerHTML = POIS.filter(p => atlasTab === '全部' || KIND[p.id] === atlasTab).map(p => `
-    <button type="button" class="item" data-id="${p.id}">
-      <span class="k" style="background:${KC[KIND[p.id]]}">${KIND[p.id]}</span>
-      <div class="n">${p.name}</div>
-      <div class="s">${p.step}</div>
-    </button>`).join('');
+ const tabs=['全部','建筑','民俗','非遗','美食'],query=atlasSearch.value.trim();
+ if(!atlasTabs.children.length)atlasTabs.innerHTML=tabs.map(t=>`<button type="button" class="chip" data-t="${t}"></button>`).join('');
+ for(const button of atlasTabs.children){const t=button.dataset.t,n=POIS.filter(p=>(t==='全部'||KIND[p.id]===t)&&pointMatches(p,query)).length;button.textContent=t+' '+n;button.classList.toggle('on',atlasTab===t);button.setAttribute('aria-pressed',String(atlasTab===t))}
+ const hits=POIS.filter(p=>(atlasTab==='全部'||KIND[p.id]===atlasTab)&&pointMatches(p,query));
+ document.getElementById('atlasCount').textContent=hits.length+' 处点位';
+ atlasGrid.innerHTML=hits.length?hits.map(p=>`<button type="button" class="item" data-id="${p.id}"><span class="atlas-thumb"><img src="${ART[p.id]||MAP_SRC}" alt="" loading="lazy" decoding="async"></span><span class="k" style="background:${KC[KIND[p.id]]}">${KIND[p.id]}</span><span class="n">${p.name}</span><span class="s">${p.step}</span></button>`).join(''):'<p class="atlas-empty">没有找到相关点位，试试其他名称或切换分类。</p>';
+ atlasGrid.scrollTop=0;
 }
-atlasTabs.addEventListener('click', e => {
-  const t = e.target.closest('[data-t]'); if (!t) return;
-  atlasTab = t.dataset.t; renderAtlas();
-});
-atlasGrid.addEventListener('click', e => {
-  const it = e.target.closest('[data-id]'); if (!it) return;
-  atlas.classList.remove('show');
-  const p = POIS.find(q => q.id === it.dataset.id);
-  openDetail(p);
-});
-function closeAtlas(){atlas.classList.remove('show');document.getElementById('btnAtlas').focus()}
-document.getElementById('btnAtlas').onclick=()=>{renderAtlas();atlas.classList.add('show');window.TaihaoMotion?.reveal(atlas.querySelector('.box'));document.getElementById('atlasClose').focus()};
-document.getElementById('atlasClose').onclick=closeAtlas;
+function ensurePointVisible(p){
+ const layer=p.cat==='folk'?'folk':'bld';
+ if(!LAYERS[layer]){LAYERS[layer]=true;const button=document.querySelector(`[data-layer="${layer}"]`);button.classList.add('on');button.setAttribute('aria-pressed','true');applyLayers()}
+}
+function closeAtlas({restoreFocus=true}={}){
+ if(!atlas.classList.contains('show'))return;
+ atlas.classList.remove('show');
+ if(atlasInertState){for(const[element,inert]of atlasInertState)element.inert=inert;atlasInertState=null}
+ if(restoreFocus)document.getElementById('btnAtlas').focus({preventScroll:true});
+}
+function choosePoint(p){
+ if(!p)return;stopTourForReading();closeMoreTools();closeAtlas({restoreFocus:false});ensurePointVisible(p);openDetail(p);
+}
+document.getElementById('btnAtlas').onclick=()=>{
+ stopTourForReading();closeMoreTools();renderAtlas();atlas.classList.add('show');
+ atlasInertState=new Map([...document.querySelector('.stage').children].filter(e=>e!==atlas&&e instanceof HTMLElement).map(e=>[e,e.inert]));
+ for(const element of atlasInertState.keys())element.inert=true;
+ window.TaihaoMotion?.reveal(atlas.querySelector('.box'));atlasSearch.focus({preventScroll:true});
+};
+document.getElementById('atlasClose').onclick=()=>closeAtlas();
 atlas.addEventListener('click',e=>{if(e.target===atlas)closeAtlas()});
+atlasTabs.addEventListener('click',e=>{const tab=e.target.closest('[data-t]');if(!tab)return;atlasTab=tab.dataset.t;renderAtlas()});
+atlasSearch.addEventListener('input',renderAtlas);
+atlasSearch.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){const first=atlasGrid.querySelector('[data-id]');if(first)choosePoint(POIS.find(p=>p.id===first.dataset.id))}});
+atlasGrid.addEventListener('click',e=>{const item=e.target.closest('[data-id]');if(item)choosePoint(POIS.find(p=>p.id===item.dataset.id))});
+document.addEventListener('keydown',e=>{
+ if(!atlas.classList.contains('show'))return;
+ if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closeAtlas();return}
+ if(e.key!=='Tab')return;
+ const nodes=[...atlas.querySelectorAll('button:not(:disabled),input,a[href],[tabindex="0"]')].filter(n=>n.getClientRects().length),first=nodes[0],last=nodes.at(-1);
+ if(!first)return;
+ if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+},true);
 
-/* ================= 搜索 ================= */
-const sugg = document.getElementById('sugg'), searchBox = document.getElementById('search');
-searchBox.addEventListener('input', () => {
-  const q = searchBox.value.trim();
-  if (!q) { sugg.style.display = 'none'; return; }
-  const hits = POIS.filter(p => p.name.includes(q) || p.tags.some(t => t.includes(q)) || (KIND[p.id]||'').includes(q)).slice(0, 8);
-  sugg.innerHTML = hits.length
-    ? hits.map(p => `<div data-id="${p.id}"><b>${p.name}</b> · ${KIND[p.id]} <span style="color:#8d8577">${p.step}</span></div>`).join('')
-    : '<div style="color:#8d8577">未找到相关点位</div>';
-  sugg.style.display = 'block';
+/* Search can be used by pointer, keyboard and input-method composition. */
+const sugg=document.getElementById('sugg'),searchBox=document.getElementById('search');
+let searchHits=[],searchIndex=-1;
+function hideSearch(){sugg.style.display='none';searchBox.setAttribute('aria-expanded','false');searchBox.removeAttribute('aria-activedescendant');searchIndex=-1}
+function renderSearch(){
+ const query=searchBox.value.trim();
+ if(!query){hideSearch();document.getElementById('searchStatus').textContent='输入名称后，可用方向键选择、回车进入。';return}
+ searchHits=POIS.filter(p=>pointMatches(p,query)).slice(0,8);searchIndex=-1;
+ sugg.innerHTML=searchHits.map((p,i)=>`<button type="button" role="option" tabindex="-1" aria-selected="false" id="search-option-${i}" data-id="${p.id}"><b>${p.name}</b><span> ${KIND[p.id]} · ${p.step}</span></button>`).join('');
+ sugg.style.display=searchHits.length?'block':'none';searchBox.setAttribute('aria-expanded',String(searchHits.length>0));searchBox.removeAttribute('aria-activedescendant');
+ document.getElementById('searchStatus').textContent=searchHits.length?'找到 '+searchHits.length+' 处点位，方向键选择，回车进入。':'没有找到相关点位，请换一个关键词。';
+}
+function markSearch(index){
+ if(!searchHits.length)return;searchIndex=(index+searchHits.length)%searchHits.length;
+ [...sugg.children].forEach((node,i)=>{node.classList.toggle('is-active',i===searchIndex);node.setAttribute('aria-selected',String(i===searchIndex))});
+ const active=sugg.children[searchIndex];searchBox.setAttribute('aria-activedescendant',active.id);active.scrollIntoView({block:'nearest'});
+}
+searchBox.addEventListener('input',renderSearch);
+searchBox.addEventListener('keydown',e=>{
+ if(e.isComposing||e.keyCode===229)return;
+ if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();if(searchBox.getAttribute('aria-expanded')!=='true')renderSearch();markSearch(searchIndex+(e.key==='ArrowDown'?1:-1))}
+ else if(e.key==='Enter'&&searchHits.length&&searchBox.getAttribute('aria-expanded')==='true'){e.preventDefault();const point=searchHits[searchIndex<0?0:searchIndex];hideSearch();choosePoint(point)}
 });
-sugg.addEventListener('click', e => {
-  const d = e.target.closest('[data-id]'); if (!d) return;
-  sugg.style.display = 'none'; searchBox.value = '';
-  const p = POIS.find(q => q.id === d.dataset.id);
-  openDetail(p);
-});
+sugg.addEventListener('click',e=>{const option=e.target.closest('[data-id]');if(option)choosePoint(POIS.find(p=>p.id===option.dataset.id))});
+document.getElementById('mapCaption').onclick=()=>{
+ stopTourForReading();moreTools.hidden=false;moreButton.setAttribute('aria-expanded','true');window.TaihaoMotion?.reveal(moreTools);searchBox.focus({preventScroll:true});searchBox.select();searchBox.scrollIntoView({block:'nearest'});renderSearch();
+};
 
 /* ================= 进香打卡 · 盖香印 ================= */
 const STAMPS = ['q1','q2','q3','q4','q6','q7','q8','q9','q10'];
 function updateStampUI(){
-  document.getElementById('stampN').textContent = Object.keys(stampSet).length;
+  stampSet=Object.fromEntries(STAMPS.filter(id=>typeof stampSet[id]==='string').map(id=>[id,stampSet[id]]));
+  document.getElementById('stampN').textContent=Object.keys(stampSet).length;document.getElementById('stampReset').disabled=!Object.keys(stampSet).length;
   document.getElementById('stampDots').innerHTML = STAMPS.map(id =>
     `<i class="${stampSet[id]?'on':''}" title="${(POIS.find(p=>p.id===id)||{}).name||''}"></i>`).join('');
 }
@@ -1133,6 +1179,7 @@ function syncStamps(){
 function refreshStampBtn(){
   const btn = document.getElementById('dStampBtn');
   if (!state.cur) return;
+  btn.disabled=!STAMPS.includes(state.cur.id)||!!stampSet[state.cur.id];
   if (!STAMPS.includes(state.cur.id)) { btn.classList.add('off'); btn.classList.remove('done'); btn.textContent = '此站无印'; }
   else if (stampSet[state.cur.id])   { btn.classList.add('done'); btn.classList.remove('off'); btn.textContent = '已盖印 ✓'; }
   else { btn.classList.remove('off','done'); btn.textContent = '在此进香 · 盖香印'; }
@@ -1153,9 +1200,10 @@ document.getElementById('dStampBtn').addEventListener('click', () => {
     setTimeout(() => { fx.style.transition = 'opacity .6s'; fx.style.opacity = 0; }, 900);
   }
 });
-document.getElementById('stampReset').onclick = () => {
-  stampSet={};try{localStorage.removeItem('thaihao-stamps')}catch{}
-  updateStampUI(); syncStamps(); refreshStampBtn();
+document.getElementById('stampReset').onclick=()=>{
+  const previous={...stampSet};stampSet={};try{localStorage.removeItem('thaihao-stamps')}catch{}
+  updateStampUI();syncStamps();refreshStampBtn();closeMoreTools();
+  notifyVisitor('已清空本机盖印记录。',()=>{stampSet=previous;try{localStorage.setItem('thaihao-stamps',JSON.stringify(stampSet))}catch{}updateStampUI();syncStamps();refreshStampBtn()});
 };
 updateStampUI();
 
@@ -1209,7 +1257,7 @@ document.getElementById('btnTour').onclick=async function(){
  const pos={x:AXIS[0].px,y:AXIS[0].py},paint=()=>{pilgrim.setAttribute('cx',pos.x);pilgrim.setAttribute('cy',pos.y)};paint();
  for(const p of AXIS){
   if(run!==tourRun)return;await tween(pos,{x:p.px,y:p.py,onUpdate:paint},.6,'power1.inOut');if(run!==tourRun)return;
-  await openDetail(p);if(run!==tourRun)return;await wait(4200);if(run!==tourRun)return;
+  await openDetail(p,{fromTour:true});if(run!==tourRun)return;await wait(4200);if(run!==tourRun)return;
   await closeDetail({fromTour:true});if(run!==tourRun)return;
  }
  stopTour();moveCamera({x:0,y:0,k:isPhone()?1.95:1});
@@ -1219,10 +1267,14 @@ document.querySelectorAll('[data-mode]').forEach(ch => ch.addEventListener('clic
   document.querySelectorAll('[data-mode]').forEach(c => c.classList.remove('on'));
   ch.classList.add('on');
   const m = ch.dataset.mode;
+  for(const button of document.querySelectorAll('[data-mode]'))button.setAttribute('aria-pressed',String(button===ch));
+  if(m!=='tour'&&touring)stopTourForReading();
+  if(m!=='timeline')stopTimeline();
   document.getElementById('timebar').classList.toggle('show', m === 'timeline');
   if (m === 'timeline') {
+    closeDetail();
     LAYERS.heat = true;
-    document.querySelector('[data-layer="heat"]').classList.add('on');
+    document.querySelector('[data-layer="heat"]').classList.add('on');document.querySelector('[data-layer="heat"]').setAttribute('aria-pressed','true');
     applyLayers();
   }
   if (m === 'tour' && !touring) document.getElementById('btnTour').click();
@@ -1231,6 +1283,7 @@ document.querySelectorAll('[data-mode]').forEach(ch => ch.addEventListener('clic
 /* ================= 校准模式（修正底图上的热点坐标） ================= */
 const calbox = document.getElementById('calbox'), calSel = document.getElementById('calSel'), calOut = document.getElementById('calOut');
 calSel.innerHTML = POIS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+document.getElementById('btnCal').hidden=new URLSearchParams(location.search).get('edit')!=='1';
 document.getElementById('btnCal').onclick = function(){
   calbox.classList.toggle('show');
   this.textContent = calbox.classList.contains('show') ? '退出校准' : '校准点位';
@@ -1253,14 +1306,14 @@ detailview.addEventListener('click', e => {
   if (!e.target.closest('.sub') && !e.target.closest('.pop')) hidePop();
 });
 let previousPhone=isPhone();
-window.addEventListener('resize',()=>{const phone=isPhone();if(phone!==previousPhone&&Math.abs(view.k-(previousPhone?1.95:1))<.01&&Math.abs(view.x)<1&&Math.abs(view.y)<1)view.k=phone?1.95:1;previousPhone=phone;layout();layoutDetail()});
+window.addEventListener('resize',()=>{const phone=isPhone();if(phone!==previousPhone&&Math.abs(view.k-(previousPhone?1.95:1))<.01&&Math.abs(view.x)<1&&Math.abs(view.y)<1)view.k=phone?1.95:1;previousPhone=phone;layout();layoutDetail();positionPop()});
 
 /* ================= 更多工具菜单（仅管理界面开合） ================= */
 const moreTools = document.getElementById('moreTools'), moreButton = document.getElementById('btnMore');
 function closeMoreTools(restoreFocus = false){
   moreTools.hidden = true;
   moreButton.setAttribute('aria-expanded', 'false');
-  sugg.style.display = 'none';
+  hideSearch();
   if (restoreFocus) moreButton.focus();
 }
 moreButton.addEventListener('click', () => {
@@ -1275,7 +1328,7 @@ document.addEventListener('pointerdown', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !moreTools.hidden) {
-    e.preventDefault();e.stopImmediatePropagation();closeMoreTools(true);
+    e.preventDefault();e.stopImmediatePropagation();if(e.target===searchBox&&searchBox.getAttribute('aria-expanded')==='true'){hideSearch();return}closeMoreTools(true);
   }
 }, true);
 moreTools.addEventListener('click', e => {
@@ -1291,6 +1344,24 @@ document.getElementById('btnCalClose').addEventListener('click', () => {
 });
 calbox.addEventListener('click', e => e.stopPropagation());
 calbox.addEventListener('wheel', e => e.stopPropagation());
+
+/* Reading and choosing a tool take precedence over automatic navigation. */
+let noticeTimer=0,undoNotice=null;
+function notifyVisitor(message,undo=null){
+ clearTimeout(noticeTimer);undoNotice=undo;
+ document.getElementById('noticeText').textContent=message;document.getElementById('noticeUndo').hidden=!undo;
+ document.getElementById('siteNotice').hidden=false;
+ noticeTimer=setTimeout(()=>{if(!undo)document.getElementById('siteNotice').hidden=true},4500);
+}
+document.getElementById('noticeUndo').onclick=()=>{const undo=undoNotice;undoNotice=null;if(undo)undo();notifyVisitor('已恢复盖印记录。')};
+function stopTourForReading(){if(touring){stopTour();if(!document.hidden)notifyVisitor('已停止自动巡游，可停留阅读或自由浏览。')}}
+for(const type of['pointerdown','wheel','touchstart'])document.getElementById('dcard').addEventListener(type,stopTourForReading,{passive:true});
+document.getElementById('dcardBody').addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(e.key))stopTourForReading()});
+moreButton.addEventListener('click',stopTourForReading);
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopTour();stopTimeline();hidePop()}});
+window.addEventListener('pagehide',()=>{stopTour();stopTimeline();hidePop()});
+for(const button of document.querySelectorAll('[data-layer]'))button.setAttribute('aria-pressed',String(!!LAYERS[button.dataset.layer]));
+for(const button of document.querySelectorAll('[data-mode]'))button.setAttribute('aria-pressed',String(button.classList.contains('on')));
 
 /* ================= 启动渲染（放在最后，确保所有状态已就绪） ================= */
 window.__taihaoMap={get camera(){return {...view}},get level(){return state.level},get current(){return state.cur?.id||null},get touring(){return touring},get labels(){return [...hotlayer.querySelectorAll('.label-visible')].map(e=>e.dataset.id)}};

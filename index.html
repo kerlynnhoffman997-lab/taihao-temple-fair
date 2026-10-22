@@ -11,12 +11,12 @@
 <meta property="og:image" content="https://kerlynnhoffman997-lab.github.io/taihao-temple-fair/assets/home/home-03.jpg">
 <title>太昊陵庙会 · 进香巡游图</title>
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="home.css?v=entry2">
+<link rel="stylesheet" href="home.css?v=refinement1">
 <link rel="stylesheet" href="transition.css?v=entry2">
-<link rel="preload" as="image" href="assets/home/home-03.jpg">
+<link rel="preload" as="image" href="assets/home/home-03.jpg" fetchpriority="high">
 <script src="assets/vendor/motion-mini.js" defer></script>
 <script src="assets/js/motion-ui.js" defer></script>
-<script src="home.js?v=interaction1" defer></script>
+<script src="home.js?v=refinement1" defer></script>
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -42,14 +42,16 @@ See THIRD_PARTY_NOTICES.txt. The original tour is retained in tour.html. -->
 <a class="wordmark" href="./" aria-label="太昊陵庙会首页"><span class="wordmark-cn">太昊陵<span class="wordmark-dot" aria-hidden="true"></span>庙会</span><span class="wordmark-en">TAIHAO TEMPLE FAIR</span></a>
 <a class="header-link" href="tour.html">走进庙会 <span aria-hidden="true">↗</span></a>
 </header>
-<main class="hero" aria-labelledby="page-title">
+<main class="hero" aria-labelledby="page-title" aria-describedby="gallery-description">
+<p class="sr-only" id="gallery-description">环绕画廊展示巡游表演、民俗手作与庙会小吃插画。可用页面底部按钮控制播放，或直接进入庙会地图。</p>
+<p class="sr-only" id="gallery-status" role="status">民俗插画正在载入，您也可以直接进入地图。</p>
 <div class="gallery" aria-hidden="true"><canvas id="gallery-canvas"></canvas></div>
 <div class="fallback-heading"><h1 id="page-title"><span>太昊陵庙会</span><strong>进香巡游图</strong></h1></div>
 <div class="hero-note"><span class="live-dot" aria-hidden="true"></span>太昊民俗，烟火人间</div>
 <div class="entry"><p class="entry-copy">逛一场庙会，看一方风物。</p><a class="enter-link" id="enter" href="tour.html"><span>进入庙会</span><span class="enter-arrow" aria-hidden="true">↗</span></a></div>
 </main>
 <footer class="site-footer">
-<button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false"><span class="motion-icon" aria-hidden="true"></span><span id="motion-label">播放环绕</span></button>
+<button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false" disabled><span class="motion-icon" aria-hidden="true"></span><span id="motion-label">播放环绕</span></button>
 <p class="footer-features">24 个点位<span aria-hidden="true"> / </span>民俗影像<span aria-hidden="true"> / </span>进香集印</p>
 <p class="gesture-note"><span class="desktop-hint">移动鼠标，让风物环绕</span><span class="touch-hint">轻触画面，让风物环绕</span></p>
 </footer>
