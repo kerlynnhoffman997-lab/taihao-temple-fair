@@ -25,8 +25,8 @@ const w=img.naturalWidth*factor,h=img.naturalHeight*factor;x.drawImage(img,(c.wi
 }
 function drawHeading(){
 heading=offscreen(width,height);const x=heading.getContext('2d');
-const lines=mobile?[{text:'太昊陵庙会',top:660,height:112,max:770,color:'#d7c8b7'},{text:'进香巡游图',top:814,height:130,max:910,color:'#fff4e3'}]:
-[{text:'太昊陵庙会',top:773,height:157,max:1320,color:'#d7c8b7'},{text:'进香巡游图',top:983,height:186,max:1540,color:'#fff4e3'}];
+const lines=mobile?[{text:'太昊陵庙会',top:660,height:112,max:770,color:'#705c45'},{text:'进香巡游图',top:814,height:130,max:910,color:'#241e17'}]:
+[{text:'太昊陵庙会',top:773,height:157,max:1320,color:'#705c45'},{text:'进香巡游图',top:983,height:186,max:1540,color:'#241e17'}];
 for(const line of lines){
 const size=line.height*scale*1.18;x.font='700 '+size+'px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';
 x.textAlign='center';x.textBaseline='top';x.fillStyle=line.color;x.save();x.translate(sx(ring.cx),sy(line.top));
@@ -47,7 +47,7 @@ const c=Math.cos(psi),s=Math.sin(psi),C=[c*U[0]+s*V[0],c*U[1]+s*V[1],c*U[2]+s*V[
 const hw=ring.tileW/(2*ring.a),hh=ring.tileH/(2*ring.a),p=project(C),pt=project(C.map((v,i)=>v+T[i]*hw)),pa=project(C.map((v,i)=>v+AXIS[i]*hh));
 const ex=pt[0]-p[0],ey=pt[1]-p[1],fx=pa[0]-p[0],fy=pa[1]-p[1];if(Math.abs(ex*fy-ey*fx)<.4||!textures.length)return;
 const image=textures[index%textures.length];ctx.save();ctx.setTransform(ex*2/image.width,ey*2/image.width,fx*2/image.height,fy*2/image.height,p[0],p[1]);roundRect(ctx,image.width,image.height,25);ctx.clip();ctx.drawImage(image,-image.width/2,-image.height/2);
-if(C[2]<0){ctx.fillStyle='rgba(16,14,13,.34)';ctx.fillRect(-image.width/2,-image.height/2,image.width,image.height)}
+if(C[2]<0){ctx.fillStyle='rgba(245,239,227,.4)';ctx.fillRect(-image.width/2,-image.height/2,image.width,image.height)}
 ctx.restore();ctx.setTransform(1,0,0,1,0,0);
 }
 function render(){
@@ -68,7 +68,32 @@ canvas.addEventListener('pointerup',event=>{if(event.pointerType!=='mouse'){manu
 toggle.addEventListener('click',()=>{manual=!wantsMotion();syncButton();requestFrame()});
 document.addEventListener('visibilitychange',()=>{last=0;syncButton();requestFrame()});
 reduced.addEventListener('change',()=>{if(reduced.matches)manual=false;syncButton();requestFrame()});
-window.addEventListener('resize',resize);window.addEventListener('pageshow',()=>{last=0;requestFrame()});
+window.addEventListener('resize',resize);window.addEventListener('pageshow',()=>{document.body.classList.remove('is-entering');departing=false;document.querySelector('#enter').removeAttribute('aria-busy');last=0;speed=0;hovering=false;manual=reduced.matches?false:null;syncButton();requestFrame()});
+// Warm the existing map assets so the next scene is ready before departure.
+let warmedMap=null,departing=false;
+function warmMap(){
+if(warmedMap)return warmedMap;
+const image=new Image();
+const photo=new Promise(resolve=>{image.onload=()=>resolve();image.onerror=()=>resolve();image.src='assets/img/001.jpg'});
+const page=fetch('tour.html',{cache:'force-cache'}).catch(()=>{});
+warmedMap=Promise.all([photo,page]);return warmedMap;
+}
+for(const link of document.querySelectorAll('a[href="tour.html"]')){
+link.addEventListener('pointerenter',warmMap,{once:true,passive:true});
+link.addEventListener('focus',warmMap,{once:true});
+link.addEventListener('click',async event=>{
+if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+event.preventDefault();if(departing)return;departing=true;
+document.querySelector('#enter').setAttribute('aria-busy','true');
+await Promise.race([warmMap(),new Promise(resolve=>setTimeout(resolve,850))]);
+manual=false;speed=0;hovering=false;syncButton();
+document.body.classList.add('is-entering');
+setTimeout(()=>location.assign(link.href),reduced.matches?0:220);
+});
+}
+if(!navigator.connection?.saveData&&!/2g/.test(navigator.connection?.effectiveType||'')){
+if(window.requestIdleCallback)requestIdleCallback(warmMap,{timeout:1800});else setTimeout(warmMap,1200);
+}
 window.__taihaoGallery={get ready(){return initialized},get time(){return elapsed},get images(){return textures.length},get moving(){return wantsMotion()},get tiles(){return ring?ring.n:0}};
 resize();
 Promise.all(Array.from({length:11},(_,i)=>new Promise(resolve=>{

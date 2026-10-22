@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="太昊陵祭祖庙会交互导览：中轴线十站进香动线、东西片区与全域民俗，含泥泥狗、布老虎、担经挑短视频与民俗图鉴。">
 <meta name="theme-color" content="#F5EFE3">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="transition.css?v=entry2">
+<link rel="preload" as="image" href="assets/img/001.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta property="og:title" content="太昊陵祭祖庙会 · 进香巡游图">
-<meta property="og:description" content="二月二至三月三，跟着长卷走一遍人祖伏羲的进香路。">
+<meta property="og:description" content="探访太昊陵庙会，走一遍进香路。">
 <meta property="og:type" content="website">
 <title>太昊陵祭祖庙会 · 进香巡游图（正式版）</title>
 <style>
@@ -54,26 +57,43 @@
   .hot.stamped .dot{box-shadow:0 0 0 4px rgba(179,59,36,.3)}
   .hot.hide{display:none}
 
-  /* ============ 顶栏 ============ */
-  .topbar{position:absolute;top:0;left:0;right:0;height:108px;z-index:30;padding:0 26px;
-    background:rgba(245,239,227,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
-  .row1{height:54px;display:flex;align-items:center;gap:20px}
-  .brand{font-weight:700;font-size:17px;letter-spacing:2px}
+  /* ============ 精简顶栏与更多工具 ============ */
+  :root{--toolbar-height:76px}
+  .topbar{position:absolute;top:0;left:0;right:0;height:var(--toolbar-height);z-index:52;padding:0 26px;
+    background:rgba(245,239,227,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .row1{height:100%;display:flex;align-items:center;gap:20px}
+  .brand{display:flex;align-items:center;gap:12px;min-height:44px;flex-shrink:0;color:var(--ink);text-decoration:none;
+    font-family:"Songti SC","STZhongsong",serif;font-weight:600;font-size:21px;letter-spacing:2px}
   .brand em{font-style:normal;color:var(--cin)}
-  .sub{font-size:12px;color:#7a7260}
+  .brand-back{font-family:sans-serif;font-size:20px;color:#8A4A2E;letter-spacing:0}
   .actions{margin-left:auto;display:flex;gap:10px}
-  .btn{font-size:13px;padding:7px 15px;border-radius:6px;border:1px solid rgba(28,26,23,.2);background:#fff;cursor:pointer;color:var(--ink)}
+  .btn{min-height:44px;font:inherit;font-size:13px;padding:9px 15px;border-radius:6px;border:1px solid rgba(28,26,23,.2);background:#fff;cursor:pointer;color:var(--ink);white-space:nowrap}
   .btn.primary{background:var(--cin);border-color:var(--cin);color:#fff}
   .btn:hover{filter:brightness(1.06)}
-  .row2{height:44px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .chip{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid rgba(28,26,23,.18);background:#fff;cursor:pointer;color:#57503f}
+  .brand:focus-visible,.btn:focus-visible,.chip:focus-visible,.tool-close:focus-visible,#search:focus-visible{outline:2px solid var(--cin);outline-offset:3px}
+  .more-toggle{display:flex;align-items:center;justify-content:center;gap:12px}
+  .more-toggle span{font-size:18px;line-height:1;transition:transform .2s}
+  .more-toggle[aria-expanded="true"] span{transform:rotate(180deg)}
+  .tool-menu{position:absolute;right:24px;top:calc(100% + 10px);width:min(380px,calc(100vw - 32px));
+    max-height:calc(100svh - var(--toolbar-height) - 28px);overflow:auto;overscroll-behavior:contain;padding:16px 20px 20px;
+    background:var(--paper);border:1px solid #d4c6ae;border-radius:12px;box-shadow:0 16px 42px rgba(28,26,23,.2)}
+  .tool-menu[hidden]{display:none}
+  .tool-menu-heading,.cal-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .tool-menu-heading h2{font-size:15px;font-weight:600;letter-spacing:2px}
+  .tool-close{display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0;border:0;border-radius:6px;background:transparent;color:#675d4d;font:inherit;font-size:17px;cursor:pointer}
+  .tool-close:hover{background:#e9dfcd}
+  .tool-section{margin-top:16px}
+  .tool-label{display:block;margin-bottom:9px;font-size:11px;letter-spacing:2px;color:#7a6b56}
+  .tool-options{display:flex;gap:7px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;justify-content:center;min-height:44px;font:inherit;font-size:12px;padding:8px 12px;border-radius:6px;border:1px solid rgba(28,26,23,.18);background:#fff;cursor:pointer;color:#57503f}
   .chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
   .chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
-  .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
-  #search{font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid rgba(28,26,23,.2);width:150px;outline:none;background:#fff}
-  #sugg{position:absolute;top:96px;left:0;right:0;margin:0 26px;z-index:40;background:#fff;border-radius:10px;
-    box-shadow:0 12px 30px rgba(28,26,23,.18);display:none;max-height:280px;overflow:auto}
-  #sugg div{padding:9px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f2ede2}
+  .tool-utilities{padding-top:16px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .tool-utilities #btnCal{grid-column:1/-1;color:#8A4A2E;background:transparent}
+  #search{min-height:44px;font:inherit;font-size:13px;padding:10px 12px;border-radius:6px;border:1px solid rgba(28,26,23,.2);width:100%;background:#fff}
+  #sugg{position:relative;z-index:1;margin-top:6px;background:#fff;border:1px solid var(--line);border-radius:6px;display:none;max-height:200px;overflow:auto}
+  #sugg div{min-height:44px;padding:11px 12px;font-size:12px;line-height:1.7;cursor:pointer;border-bottom:1px solid #f2ede2}
+  #sugg div:last-child{border-bottom:0}
   #sugg div:hover{background:#FBF6EA}
   #sugg b{color:var(--cin);font-weight:600}
 
@@ -212,32 +232,6 @@
   #stampFx{position:fixed;pointer-events:none;z-index:70;font-size:56px;color:var(--cin);opacity:0;
     border:5px solid var(--cin);border-radius:14px;padding:8px 14px;font-weight:700;transform:rotate(-12deg)}
 
-  /* ============ 卷轴开场 ============ */
-  #intro{position:absolute;inset:0;z-index:60;overflow:hidden}
-  #intro .panel{position:absolute;top:0;bottom:0;width:50.4%;background:#F2E9D5;
-    box-shadow:0 0 60px rgba(28,26,23,.35)}
-  #intro .panel.left{left:0;border-right:1px solid #D8CBB0}
-  #intro .panel.right{right:0;border-left:1px solid #D8CBB0}
-  #intro .roller{position:absolute;top:-2%;bottom:-2%;width:22px;background:#8A4A2E;border-radius:9px;
-    box-shadow:inset 3px 0 0 #6E3820,inset -3px 0 0 #6E3820}
-  #intro .left .roller{right:-8px} #intro .right .roller{left:-8px}
-  #intro .roller::before,#intro .roller::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
-    width:34px;height:12px;background:#5E2015;border-radius:5px}
-  #intro .roller::before{top:-6px} #intro .roller::after{bottom:-6px}
-  #intro .ititle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
-    justify-content:center;gap:18px}
-  #intro h1{font-size:52px;letter-spacing:16px;color:var(--ink);font-weight:700;text-indent:16px}
-  #intro .isub{font-size:15px;letter-spacing:8px;color:#8A4A2E;text-indent:8px}
-  #intro .seal{width:64px;height:64px;border:3px solid var(--cin);color:var(--cin);border-radius:8px;
-    display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1.2;text-align:center;
-    transform:rotate(-4deg);font-weight:700}
-  #intro .skip{margin-top:10px;font-size:14px;padding:10px 26px;border-radius:8px;
-    border:1px solid rgba(28,26,23,.3);background:#fff;cursor:pointer;color:var(--ink);letter-spacing:2px}
-  #intro .skip:hover{background:var(--cin);color:#fff;border-color:var(--cin)}
-  #intro.go .panel{transition:transform 1.5s cubic-bezier(.7,0,.3,1)}
-  #intro.go .panel.left{transform:translateX(-102%)} #intro.go .panel.right{transform:translateX(102%)}
-  #intro.go .ititle{transition:opacity .5s;opacity:0}
-
   /* ============ 校准面板 ============ */
   #calbox{position:absolute;left:24px;top:124px;width:272px;z-index:36;background:#fff;border-radius:10px;
     padding:14px 16px;box-shadow:0 10px 30px rgba(28,26,23,.16);font-size:12px;display:none}
@@ -246,9 +240,79 @@
   #calbox textarea{width:100%;height:110px;font-size:11px;font-family:Consolas,monospace;margin-top:8px;
     border:1px solid #ddd;border-radius:6px;padding:6px}
   #calbox .hint{color:#8d8577;line-height:1.7}
-.site-home-link{position:fixed;right:16px;top:116px;z-index:100;display:flex;align-items:center;min-height:44px;padding:0 15px;border:1px solid #c9beaa;border-radius:6px;background:#f5efe3;color:#574735;text-decoration:none;font:12px Microsoft YaHei,sans-serif;box-shadow:0 2px 10px #0001}.site-home-link:hover{background:#fff}.site-home-link:focus-visible{outline:2px solid #b33b24;outline-offset:3px}@media(max-width:600px){body:has(#detailview.in) .site-home-link{top:16px;right:12px}}</style>
+  /* Toolbar and navigation remain available over point details. */
+  .capsbar{top:calc(var(--toolbar-height) + 10px);z-index:49;max-width:calc(100vw - 32px);width:max-content;
+    flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;padding:2px;scrollbar-width:thin}
+  .cap{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-height:44px}
+  #calbox{left:auto;right:24px;top:calc(var(--toolbar-height) + 12px);max-width:calc(100vw - 32px);
+    max-height:calc(100svh - var(--toolbar-height) - 28px);overflow:auto;overscroll-behavior:contain;z-index:51;padding-top:8px}
+  #calbox select{min-height:44px}
+  #calbox textarea{min-height:110px}
+  @media(max-width:680px){
+    :root{--toolbar-height:112px}
+    .topbar{padding:12px}
+    .row1{display:grid;grid-template-columns:1fr;grid-template-rows:36px 44px;gap:8px}
+    .brand{min-height:36px;font-size:20px;gap:10px;justify-self:start}
+    .actions{display:grid;grid-template-columns:1.4fr 1fr .7fr;width:100%;gap:8px;margin:0}
+    .actions .btn{min-width:0;padding:8px 7px;font-size:12px}
+    .more-toggle{gap:6px}
+    .tool-menu{right:12px;width:calc(100vw - 24px);padding:12px 16px 16px}
+    .capsbar{max-width:calc(100vw - 20px);gap:6px}
+    .capsbar .cap{padding:8px 12px;font-size:11px}
+    .capsbar .cap.flat{display:none}
+    #calbox{right:12px;max-width:calc(100vw - 24px)}
+    .dtagbig{top:calc(var(--toolbar-height) + 70px);right:18px;font-size:27px;letter-spacing:3px}
+    .legend{left:12px;right:12px;bottom:124px;font-size:10px;padding:7px 10px;line-height:1.8}
+    #tilebar{right:12px;bottom:12px;gap:6px}
+    #tilebar .tile{padding:8px;font-size:10px}
+    #tilebar .tile:last-child{width:132px}
+    #mini{width:104px;height:70px}
+    #tilebar .tile:first-child>div{font-size:9px}
+    #stampReset{display:inline-flex;align-items:center;min-height:32px}
+    #timebar{left:12px;right:12px;bottom:130px;width:auto;transform:none;padding:10px 12px}
+    #timebar .trow{flex-wrap:wrap;gap:8px}
+    #timebar input[type=range]{min-width:100px;min-height:30px}
+    #timebar .ev{min-width:0;text-align:left}
+    .mapview:has(#timebar.show) .legend{display:none}
+  }
+  @media(max-height:520px) and (min-width:681px){
+    :root{--toolbar-height:64px}
+    .tool-menu{max-height:calc(100svh - 88px)}
+    .legend{font-size:10px;padding:6px 10px;bottom:12px;left:16px}
+    #tilebar{bottom:12px;right:16px}
+    #mini{width:112px;height:74px}
+  }
+  @media(prefers-reduced-motion:reduce){.more-toggle span{transition:none}}
+
+  /* Continue the homepage paper field: scene, then points, then controls. */
+  body,.mapview{background:#F5EFE3}
+  .map-loading .scene{opacity:0;transform:scale(1.018)}
+  .map-loading .topbar,.map-loading .capsbar,.map-loading .legend,.map-loading #tilebar{opacity:0;visibility:hidden;pointer-events:none}
+  .map-ready .topbar{animation:mapToolsIn .35s ease .38s both}
+  .map-ready .capsbar{animation:mapToolsIn .35s ease .42s both}
+  .map-ready .legend,.map-ready #tilebar{animation:mapToolsIn .35s ease .50s both}
+  @keyframes mapToolsIn{from{opacity:0}to{opacity:1}}
+  @media(prefers-reduced-motion:reduce){
+    .scene,.hot,.topbar,.capsbar,.legend,#tilebar{animation:none!important;transition:none!important}
+    .hotlayer.ready .hot{opacity:1}
+  }
+</style>
+<script>
+// Navigation or viewport changes can skip native snapshots. Keep the normal
+// paper-to-map reveal in control when the optional native transition aborts.
+for (const type of ['pageswap','pagereveal']) {
+  window.addEventListener(type, event => {
+    const transition = event.viewTransition;
+    if (!transition) return;
+    transition.ready.catch(() => {
+      transition.skipTransition();
+      document.documentElement.dataset.transitionFallback = 'true';
+    });
+  });
+}
+</script>
 </head>
-<body><a class="site-home-link" href="./">← 返回网站首页</a>
+<body class="map-loading">
 <div class="stage">
 
   <!-- ===== 首页 · 地图 ===== -->
@@ -267,41 +331,13 @@
       </div>
     </div>
 
-    <div class="topbar">
-      <div class="row1">
-        <div class="brand">太昊陵<em>祭祖庙会</em>· 羲皇故都朝祖会</div>
-        <div class="sub">漫游 / 进香巡游 / 会期时间轴 · 点击光点走进场景</div>
-        <div class="actions">
-          <button class="btn" id="btnTrail">显示巡游路线</button>
-          <button class="btn" id="btnCal">校准点位</button>
-          <button class="btn" id="btnReset">复位</button>
-          <button class="btn primary" id="btnTour">▶ 开始进香巡游</button>
-        </div>
-      </div>
-      <div class="row2">
-        <span class="chip on" data-mode="roam">漫游</span>
-        <span class="chip" data-mode="tour">进香巡游</span>
-        <span class="chip" data-mode="timeline">会期时间轴</span>
-        <span class="sep"></span>
-        <span class="chip lay on" data-layer="bld"><i style="background:#B33B24"></i>建筑层</span>
-        <span class="chip lay on" data-layer="folk"><i style="background:#C99A2C"></i>民俗层</span>
-        <span class="chip lay" data-layer="heat"><i style="background:#D85A30"></i>人流热度层</span>
-        <span class="sep"></span>
-        <button class="btn" id="btnAtlas">民俗图鉴</button>
-        <input id="search" placeholder="搜索点位…" autocomplete="off">
-      </div>
-      <div id="sugg"></div>
-    </div>
-
-    <div class="capsbar" id="capsbar"></div>
-
     <div class="legend">
       <b>拖拽</b> 平移 · <b>滚轮</b> 缩放 · <b>点击光点</b> 走近看民俗<br>
       <i style="background:#B33B24"></i>中轴线　<i style="background:#3E7C6F"></i>东片区　<i style="background:#3D6B8C"></i>西片区　<i style="background:#C99A2C"></i>全域民俗
     </div>
 
     <div id="calbox">
-      <b>校准模式</b>
+      <div class="cal-heading"><b>校准模式</b><button class="tool-close" id="btnCalClose" type="button" aria-label="退出校准">✕</button></div>
       <div class="hint">① 选择点位 → ② 在底图上点击正确位置 → ③ 光点即时移动，坐标追加到下方，可整段复制回代码里的 POIS。</div>
       <select id="calSel"></select>
       <textarea id="calOut" readonly></textarea>
@@ -333,6 +369,47 @@
       <div class="marks"><span>二月初二</span><span>二月十五</span><span>三月初三</span></div>
     </div>
   </div>
+
+  <header class="topbar" aria-label="庙会地图工具栏">
+    <div class="row1">
+      <a class="brand" href="./" aria-label="返回太昊陵庙会首页"><span class="brand-back" aria-hidden="true">←</span><span>太昊陵<em>庙会</em></span></a>
+      <div class="actions">
+        <button class="btn primary" id="btnTour" type="button">▶ 开始进香巡游</button>
+        <button class="btn" id="btnAtlas" type="button">民俗图鉴</button>
+        <button class="btn more-toggle" id="btnMore" type="button" aria-expanded="false" aria-controls="moreTools">更多<span aria-hidden="true">⌄</span></button>
+      </div>
+    </div>
+    <section class="tool-menu" id="moreTools" aria-label="更多地图工具" hidden>
+      <div class="tool-menu-heading"><h2>地图工具</h2><button class="tool-close" id="btnMoreClose" type="button" aria-label="收起更多工具">✕</button></div>
+      <div class="tool-section tool-search">
+        <label class="tool-label" for="search">寻找点位</label>
+        <input id="search" type="search" placeholder="搜索建筑、民俗、美食…" autocomplete="off" aria-controls="sugg">
+        <div id="sugg" aria-live="polite"></div>
+      </div>
+      <div class="tool-section">
+        <p class="tool-label">浏览方式</p>
+        <div class="tool-options">
+          <button class="chip on" data-mode="roam" type="button">漫游</button>
+          <button class="chip" data-mode="tour" type="button">进香巡游</button>
+          <button class="chip" data-mode="timeline" type="button">会期时间轴</button>
+        </div>
+      </div>
+      <div class="tool-section">
+        <p class="tool-label">地图图层</p>
+        <div class="tool-options">
+          <button class="chip lay on" data-layer="bld" type="button"><i style="background:#B33B24"></i>建筑层</button>
+          <button class="chip lay on" data-layer="folk" type="button"><i style="background:#C99A2C"></i>民俗层</button>
+          <button class="chip lay" data-layer="heat" type="button"><i style="background:#D85A30"></i>人流热度层</button>
+        </div>
+      </div>
+      <div class="tool-section tool-utilities">
+        <button class="btn" id="btnTrail" type="button">显示巡游路线</button>
+        <button class="btn" id="btnReset" type="button">复位地图</button>
+        <button class="btn" id="btnCal" type="button" aria-expanded="false" aria-controls="calbox">校准点位</button>
+      </div>
+    </section>
+  </header>
+  <nav class="capsbar" id="capsbar" aria-label="地图与点位导航"></nav>
 
   <!-- ===== 详情场景 ===== -->
   <div class="detailview" id="detailview">
@@ -370,19 +447,10 @@
 
   <div id="stampFx">进香</div>
 
-  <div id="intro">
-    <div class="panel left"><div class="roller"></div></div>
-    <div class="panel right"><div class="roller"></div></div>
-    <div class="ititle">
-      <h1>太昊陵庙会</h1>
-      <div class="isub">进 香 巡 游 图 · 二月二 至 三月三</div>
-      <div class="seal">人祖<br>福地</div>
-      <button class="skip" id="btnEnter">展 开 长 卷 →</button>
-    </div>
-  </div>
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="assets/vendor/gsap.min.js"></script>
 <script>
 /* ================= 底图与版画插画 ================= */
 const MAP_SRC = 'assets/img/001.jpg';
@@ -671,7 +739,7 @@ function renderHotspots() {
     const c = CAT[p.cat].color;
     return `<div class="hot" id="hot-${p.id}" data-id="${p.id}" data-cat="${p.cat}"
         style="left:${(p.px / VW * 100).toFixed(3)}%;top:${(p.py / VH * 100).toFixed(3)}%;
-               --c:${c};--lx:${(p.lx*0.62).toFixed(0)}px;--ly:${(p.ly*0.62).toFixed(0)}px;animation-delay:${(0.9 + i * 0.06).toFixed(2)}s">
+               --c:${c};--lx:${(p.lx*0.62).toFixed(0)}px;--ly:${(p.ly*0.62).toFixed(0)}px;animation-delay:${(i * 0.008).toFixed(2)}s">
       <span class="ring"></span><span class="ring ring2"></span>
       <span class="dot"></span>
       <span class="lab">${p.name}</span>
@@ -1074,30 +1142,6 @@ function tween(obj, props, dur, ease = 'power2.inOut'){
 }
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
-/* ================= 卷轴开场 ================= */
-const intro = document.getElementById('intro');
-let opened = false;
-async function openScroll(){
-  if (opened) return; opened = true;
-  setTimeout(() => hotlayer.classList.add('ready'), 420);   /* 卷轴展开时呼吸光点依次亮起 */
-  if (hasGsap) {
-    gsap.timeline()
-      .to('.ititle', { opacity: 0, duration: .45 })
-      .to('.panel.left',  { xPercent: -103, duration: 1.5, ease: 'power3.inOut' }, '<')
-      .to('.panel.right', { xPercent: 103, duration: 1.5, ease: 'power3.inOut' }, '<')
-      .add(() => intro.remove(), '-=.2');
-    view.k = 1.45; apply();
-    await tween(view, { k: 1, x: 0, y: 0, onUpdate: apply }, 1.8, 'power2.out');
-  } else {
-    intro.classList.add('go');
-    await wait(1500); intro.remove();
-    view.k = 1.45; apply();
-    await tween(view, { k: 1, x: 0, y: 0, onUpdate: apply }, 1.8);
-  }
-}
-document.getElementById('btnEnter').onclick = openScroll;
-setTimeout(() => { if (!opened) openScroll(); }, 6000);
-
 /* ================= 进香巡游（南 → 北，逐站推镜进入） ================= */
 const pilgrim = document.getElementById('pilgrim');
 document.getElementById('btnTour').onclick = async function(){
@@ -1159,8 +1203,61 @@ detailview.addEventListener('click', e => {
 });
 window.addEventListener('resize', () => { layout(); layoutDetail(); });
 
+/* ================= 更多工具菜单（仅管理界面开合） ================= */
+const moreTools = document.getElementById('moreTools'), moreButton = document.getElementById('btnMore');
+function closeMoreTools(restoreFocus = false){
+  moreTools.hidden = true;
+  moreButton.setAttribute('aria-expanded', 'false');
+  sugg.style.display = 'none';
+  if (restoreFocus) moreButton.focus();
+}
+moreButton.addEventListener('click', () => {
+  const opening = moreTools.hidden;
+  moreTools.hidden = !opening;
+  moreButton.setAttribute('aria-expanded', String(opening));
+});
+document.getElementById('btnMoreClose').addEventListener('click', () => closeMoreTools(true));
+document.addEventListener('pointerdown', e => {
+  if (!moreTools.hidden && !e.target.closest('.topbar')) closeMoreTools();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !moreTools.hidden) {
+    e.preventDefault();e.stopImmediatePropagation();closeMoreTools(true);
+  }
+}, true);
+moreTools.addEventListener('click', e => {
+  if (e.target.closest('[data-mode]') || e.target.closest('#btnReset') || e.target.closest('#btnCal') || e.target.closest('#sugg [data-id]')) closeMoreTools();
+});
+document.getElementById('btnTour').addEventListener('click', () => closeMoreTools());
+document.getElementById('btnAtlas').addEventListener('click', () => closeMoreTools());
+document.getElementById('btnCal').addEventListener('click', function(){
+  this.setAttribute('aria-expanded', String(calbox.classList.contains('show')));
+});
+document.getElementById('btnCalClose').addEventListener('click', () => {
+  if (calbox.classList.contains('show')) document.getElementById('btnCal').click();
+});
+calbox.addEventListener('click', e => e.stopPropagation());
+calbox.addEventListener('wheel', e => e.stopPropagation());
+
 /* ================= 启动渲染（放在最后，确保所有状态已就绪） ================= */
 renderHotspots();
+
+/* A single entrance: reveal the loaded map without another intro or click. */
+const entryMapImage = document.getElementById('mapimg');
+let mapEntryRevealed = false;
+function revealMapEntry(){
+  if(mapEntryRevealed) return;
+  mapEntryRevealed = true;
+  document.body.classList.remove('map-loading');
+  document.body.classList.add('map-ready');
+  setTimeout(() => hotlayer.classList.add('ready'), window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 140);
+}
+if(entryMapImage.complete){
+  revealMapEntry();
+}else{
+  entryMapImage.addEventListener('load',revealMapEntry,{once:true});
+  entryMapImage.addEventListener('error',revealMapEntry,{once:true});
+}
 </script>
 </body>
 </html>
