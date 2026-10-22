@@ -75,7 +75,7 @@ function warmMap(){
 if(warmedMap)return warmedMap;
 const image=new Image();
 const photo=new Promise(resolve=>{image.onload=()=>resolve();image.onerror=()=>resolve();image.src='assets/img/001.jpg'});
-const page=fetch('tour.html',{cache:'force-cache'}).catch(()=>{});
+const page=fetch('tour.html',{cache:'reload'}).catch(()=>{});
 warmedMap=Promise.all([photo,page]);return warmedMap;
 }
 for(const link of document.querySelectorAll('a[href="tour.html"]')){
