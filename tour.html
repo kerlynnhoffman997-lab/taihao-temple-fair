@@ -307,8 +307,9 @@
 <link rel="stylesheet" href="stamp-book.css?v=ui1">
 <link rel="stylesheet" href="discovery-experience.css?v=discovery1">
 <link rel="stylesheet" href="reading-sheet.css?v=ui1">
-<link rel="stylesheet" href="ui-system.css?v=ui1">
+<link rel="stylesheet" href="ui-system.css?v=hotspot1">
 <link rel="stylesheet" href="ui-dialogs.css?v=ui1">
+<link rel="stylesheet" href="scene-hotspots.css?v=hotspot1">
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -1020,7 +1021,11 @@ function fillMedia(p,{crossfade=false}={}){
 
 function layoutDetail(){
   if(!state.cur)return;
-  if(currentFrame?.classList.contains('scene-photo')){window.TaihaoScenes?.positionAnnotations(state.cur.id,dsubs,dsubs.querySelectorAll('.sub'));return}
+  if(currentFrame?.classList.contains('scene-photo')){
+   window.TaihaoScenes?.positionAnnotations(state.cur.id,dsubs,dsubs.querySelectorAll('.sub'));
+   const focused=dsubs.querySelector('.sub:focus-visible,.sub:hover');if(focused)positionSubLabel(focused,{reveal:false});
+   return;
+  }
   const el = document.getElementById('mapcrop'); if (!el) return;
   const box = dmedia.getBoundingClientRect(); if (!box.width) return;
   const z = Math.max(box.width/VW,box.height/VH)*1.65;
@@ -1083,12 +1088,12 @@ function openSub(p,index,trigger,{autoplay=true}={}){
  if(item.sceneImage&&window.TaihaoImageViewer){
   hidePop(false,{history:false});
   activeSub={point:p,index};popTrigger=trigger||popTrigger;directImageAnnotation=true;viewerContext={point:p.id,note:index};
-  dsubs.querySelectorAll('.sub').forEach(el=>el.classList.toggle('on',+el.dataset.i===index));
+  syncSubState(index);
   TaihaoImageViewer.open({src:item.img,alt:p.name+'中的'+item.t,title:p.name+' · '+item.t,caption:item.d||window.TaihaoStories?.points[p.id]?.lead||'',closeLabel:'关闭细节，返回场景',trigger:popTrigger,focus:annotationFocus(p,index)});
   return;
  }
  activeSub={point:p,index};popTrigger=trigger||popTrigger;
- dsubs.querySelectorAll('.sub').forEach(el=>el.classList.toggle('on',+el.dataset.i===index));
+ syncSubState(index);
  pop.querySelector('b').textContent=item.t;
  const text=pop.querySelector('.txt');text.textContent=item.d;text.style.display=item.d?'':'none';
  const media=pop.querySelector('.pmedia');
@@ -1105,10 +1110,44 @@ function openSub(p,index,trigger,{autoplay=true}={}){
  document.getElementById('popX').focus({preventScroll:true});
  if(!item.v)recordDiscovery(p.id,'annotation',index);
 }
+function syncSubState(index=null){
+ dsubs.querySelectorAll('.sub').forEach(button=>{const open=Number(button.dataset.i)===index;button.classList.toggle('on',open);button.setAttribute('aria-expanded',String(open))});
+}
+function positionSubLabel(button,{reveal=true}={}){
+ const label=button.querySelector('.sub-label');if(!label)return;
+ if(reveal)delete button.dataset.labelDismissed;
+ const box=dsubs.getBoundingClientRect(),rect=button.getBoundingClientRect();
+ const bounds={left:box.left+6,right:box.right-6,top:box.top+6,bottom:box.bottom-6};
+ const picture=dmedia.querySelector('.scene-photo');
+ if(picture?.naturalWidth){const scale=Math.min(box.width/picture.naturalWidth,box.height/picture.naturalHeight),w=picture.naturalWidth*scale,h=picture.naturalHeight*scale;bounds.left+=(box.width-w)/2;bounds.right-=(box.width-w)/2;bounds.top+=(box.height-h)/2;bounds.bottom-=(box.height-h)/2}
+ label.style.maxWidth=Math.max(80,Math.min(224,bounds.right-bounds.left))+'px';
+ const width=label.offsetWidth,height=label.offsetHeight;
+ const left=Math.max(bounds.left,Math.min(rect.left+(rect.width-width)/2,bounds.right-width));
+ let top=rect.top-height-2;if(top<bounds.top)top=rect.bottom+2;
+ top=Math.max(bounds.top,Math.min(top,bounds.bottom-height));
+ label.style.left=(left-rect.left)+'px';label.style.top=(top-rect.top)+'px';label.style.transform='none';
+}
+function dismissSubLabel(){
+ if(pop.classList.contains('show')||atlas.classList.contains('show')||!moreTools.hidden)return false;
+ const button=[...dsubs.querySelectorAll('.sub')].find(node=>getComputedStyle(node.querySelector('.sub-label')).visibility==='visible');
+ if(!button)return false;button.dataset.labelDismissed='true';return true;
+}
 function fillSubs(p){
- dsubs.innerHTML=(SUBS[p.id]||[]).map((s,i)=>`<button type="button" aria-label="${s.t}${s.v?'，视频':s.img?'，图片':''}" class="sub ${s.v?'vid':''}" data-i="${i}" data-x="${s.x}" data-y="${s.y}" style="left:${s.x}%;top:${s.y}%">${s.v?'▶':s.img?'图':i+1}</button>`).join('');
- dsubs.querySelectorAll('.sub').forEach(el=>el.onclick=e=>{e.stopPropagation();openSub(p,+el.dataset.i,el)});
+ const shapes={story:'<path d="M8 3v10M3 8h10"/>',image:'<rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="m3 11 3-3 2.5 2 2-3 2.5 4"/><circle cx="5.2" cy="5.7" r=".8"/>',video:'<path d="m5 3 8 5-8 5z" fill="currentColor" stroke="none"/>'};
+ dsubs.replaceChildren();
+ for(const [index,item] of (SUBS[p.id]||[]).entries()){
+  const kind=item.v?'video':item.img?'image':'story',verb=kind==='video'?'看短片':kind==='image'?'看细节图':'读故事';
+  const button=document.createElement('button');button.type='button';button.className='sub sub-'+kind+(item.v?' vid':'');
+  Object.assign(button.dataset,{i:String(index),x:String(item.x),y:String(item.y),kind});button.style.left=item.x+'%';button.style.top=item.y+'%';
+  button.setAttribute('aria-label',verb+'：'+item.t);button.setAttribute('aria-expanded','false');if(item.sceneImage)button.setAttribute('aria-haspopup','dialog');else button.setAttribute('aria-controls','pop');
+  const icon=document.createElement('span');icon.className='sub-icon';icon.setAttribute('aria-hidden','true');icon.innerHTML='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+shapes[kind]+'</svg>';
+  const label=document.createElement('span');label.className='sub-label';label.setAttribute('aria-hidden','true');label.textContent=verb+' · '+item.t;
+  button.append(icon,label);button.onclick=e=>{e.stopPropagation();openSub(p,index,button)};
+  button.addEventListener('pointerenter',()=>positionSubLabel(button));button.addEventListener('focus',()=>positionSubLabel(button));button.addEventListener('pointerleave',()=>delete button.dataset.labelDismissed);
+  dsubs.append(button);
+ }
  window.TaihaoScenes?.positionAnnotations(p.id,dsubs,dsubs.querySelectorAll('.sub'));
+ syncSubState(activeSub?.point===p?activeSub.index:null);
 }
 function fillPointMedia(p){
  const entries=SUBS[p.id]||[],video=entries.findIndex(e=>e.v),image=entries.findIndex(e=>e.img),text=entries.findIndex(e=>!e.v&&!e.img),items=[];
@@ -1123,7 +1162,7 @@ function fillPointMedia(p){
 function hidePop(restoreFocus=false,{history=true}={}){
  if(history&&pop.classList.contains('show'))visitorFlow?.closeMedia();
  const video=pop.querySelector('video');if(video)video.pause();pop.classList.remove('show');activeSub=null;
- dsubs.querySelectorAll('.sub').forEach(x=>x.classList.remove('on'));
+ syncSubState();
  if(restoreFocus&&popTrigger?.isConnected&&popTrigger.getClientRects().length)popTrigger.focus({preventScroll:true});
  setTimeout(()=>{if(!pop.classList.contains('show'))pop.querySelector('.pmedia').innerHTML=''},220);
 }
@@ -1276,6 +1315,7 @@ renderCaps();
 window.addEventListener('keydown', e => {
   if(window.TaihaoImageViewer?.isOpen||document.getElementById('nearbyPicker').open||stampBook?.isOpen||guideBook?.isOpen)return;
   if(e.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+  if(e.key==='Escape'&&dismissSubLabel()){e.preventDefault();return}
   if(e.key==='Escape'){if(atlas.classList.contains('show')){closeAtlas();return}if(pop.classList.contains('show')){hidePop(true);return}if(!moreTools.hidden)return;closeDetail();}
   if(atlas.classList.contains('show')||!moreTools.hidden||pop.classList.contains('show'))return;
   if (state.level === 'detail' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
@@ -1656,7 +1696,7 @@ function openSceneImage(trigger,preserveAnnotation=false){
 document.addEventListener('taihao:viewerchange',event=>{
  if(event.detail?.open){visitorFlow?.image(true);return}
  const annotation=directImageAnnotation;directImageAnnotation=false;viewerContext=null;
- if(annotation){activeSub=null;dsubs.querySelectorAll('.sub').forEach(el=>el.classList.remove('on'));visitorFlow?.closeMedia()}else visitorFlow?.image(false);
+ if(annotation){activeSub=null;syncSubState();visitorFlow?.closeMedia()}else visitorFlow?.image(false);
 });
 document.addEventListener('taihao:viewerready',event=>{
  if(viewerContext?.note!=null&&viewerContext?.point===state.cur?.id&&event.detail?.src===ART[state.cur.id])recordDiscovery(state.cur.id,'annotation',viewerContext.note);

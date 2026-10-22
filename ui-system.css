@@ -131,11 +131,6 @@ button:disabled{cursor:default}
 .dcard .acts .stamp.off{background:#eee3cf;color:#8b7b65;border:1px solid #cabb9f;outline:none}
 .dcard .tags i{border-radius:0;background:transparent;border-bottom:1px solid #c8b390;padding:3px 0;color:#766047}
 .dtagbig{border:3px double #a4362366;border-radius:1px;background-color:#fff9ed;background-image:var(--ui-paper-image);color:#744029;font-family:var(--ui-title-font);text-shadow:none;font-size:28px;letter-spacing:4px}
-.sub{isolation:isolate;border:0;border-radius:2px;background:transparent;color:var(--ui-red);box-shadow:none;font-family:var(--ui-title-font);font-weight:600}
-.sub::before{content:'';position:absolute;z-index:-1;inset:6px;border:3px double var(--ui-red);border-radius:2px;background:#fff9ed;box-shadow:1px 1px 0 #30271d22;pointer-events:none}
-.sub:hover,.sub.on{background:transparent;color:#fff9ed;box-shadow:none}
-.sub:hover::before,.sub.on::before{background:var(--ui-red);border-color:#fff9ed;box-shadow:0 0 0 1px var(--ui-red)}
-.sub:focus-visible{outline:2px solid var(--ui-red);outline-offset:3px}
 .route-finish{border:0;border-top:3px double #a4362377;border-radius:0;background:transparent;color:#69462b}
 .route-finish button{border-radius:2px;border-color:#b99e78;background:#f4e7ce;color:#7e3c26}
 .point-pending{color:#91412a;border-radius:0;background:#f0e3cd;border:1px dashed #c6aa80}

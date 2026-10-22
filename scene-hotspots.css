@@ -1,0 +1,26 @@
+/* Small cinnabar seals reveal a scene; the transparent hit area remains 44px. */
+#dsubs .sub{isolation:isolate;width:44px;height:44px;min-width:44px;min-height:44px;margin:-22px 0 0 -22px;padding:0;border:0;border-radius:50%;background:transparent;color:#fff9ed;box-shadow:none;outline:0;transition:opacity .14s ease}
+#dsubs .sub::before{content:'';position:absolute;z-index:-1;inset:9px;border:1px solid #fff9ed;border-radius:50%;background:#a43623;box-shadow:0 0 0 1px #762719aa,0 2px 3px #30271d33;pointer-events:none;transition:background .12s ease,box-shadow .12s ease}
+#dsubs .sub-icon{display:grid;place-items:center;width:14px;height:14px;pointer-events:none}
+#dsubs .sub-icon svg{display:block;width:14px;height:14px;overflow:visible}
+#dsubs .sub.on{background:transparent;color:#fff9ed}
+#dsubs .sub.on::before{background:#30271d;box-shadow:0 0 0 2px #fff9ed,0 0 0 3px #a43623}
+#dsubs .sub:focus-visible::before{box-shadow:0 0 0 2px #fff9ed,0 0 0 4px #a43623}
+#dsubs .sub-label{position:absolute;z-index:2;left:22px;top:-34px;display:block;width:max-content;max-width:224px;padding:6px 9px;border:1px solid #b9a07d;border-radius:3px;background:#fff9ed;color:#69422c;font-family:var(--ui-body-font,"Microsoft YaHei",sans-serif);font-size:12px;font-weight:400;line-height:1.6;letter-spacing:0;text-align:left;white-space:normal;overflow-wrap:anywhere;box-shadow:1px 2px 0 #30271d18;opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-50%);transition:opacity .12s ease}
+#dsubs .sub:focus-visible{z-index:4}
+#dsubs .sub:focus-visible .sub-label{opacity:1;visibility:visible}
+#dsubs .sub.on .sub-label,#dsubs .sub[data-label-dismissed=true] .sub-label{opacity:0;visibility:hidden}
+@media(hover:hover) and (pointer:fine){
+ #dsubs .sub:hover{z-index:4;background:transparent;color:#fff9ed}
+ #dsubs .sub:hover::before{background:#7e281a;box-shadow:0 0 0 2px #fff9edcc,0 0 0 3px #a43623}
+ #dsubs .sub:hover .sub-label{opacity:1;visibility:visible}
+ #dsubs .sub.on:hover .sub-label,#dsubs .sub[data-label-dismissed=true]:hover .sub-label{opacity:0;visibility:hidden}
+}
+@media(prefers-reduced-motion:reduce){#dsubs .sub,#dsubs .sub::before,#dsubs .sub-label{transition:none!important}}
+/* Keep the painting and its hotspots clear of the desktop reading folio. */
+@media(min-width:921px){
+ .detailview .dcard{width:min(378px,30vw)}
+ .detailview .dimg{left:calc(min(378px,30vw) + 56px);right:12px;top:calc(var(--toolbar-height) + 12px);bottom:12px;border:1px solid #cbb89a;border-radius:2px}
+ .route-active .detailview .dimg{top:calc(var(--toolbar-height) + 92px)}
+ .detailview .dtagbig{top:12px;right:12px;font-size:22px;letter-spacing:2px}
+}
