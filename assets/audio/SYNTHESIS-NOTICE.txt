@@ -1,0 +1,4 @@
+太昊陵庙会网站原创合成提示音与五声音阶音景。
+由数学振荡器和包络合成，无外部采样、无现场录音，也不是传统仪式或乐器的真实录音。仅用于界面反馈和短时试听，不自动循环。
+Original mathematical synthesis for this website; no third-party recordings or samples. This is a synthetic soundscape, not an on-site recording.
+PCM WAV, mono, 22050 Hz, 16-bit.

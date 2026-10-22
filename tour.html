@@ -297,6 +297,7 @@
     .hotlayer.ready .hot{opacity:1}
   }
 </style>
+<link rel="stylesheet" href="map-experience.css?v=interaction1">
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -314,9 +315,10 @@ for (const type of ['pageswap','pagereveal']) {
 </head>
 <body class="map-loading">
 <div class="stage">
+<section class="map-context" aria-labelledby="map-title"><div><p class="map-eyebrow">太昊陵庙会 · 进香巡游</p><h1 id="map-title">循香入境</h1></div><p class="map-intro">沿中轴走一趟进香路，也可点选风物，自由漫游。</p><button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="开启声音">声音：关</button></section>
 
   <!-- ===== 首页 · 地图 ===== -->
-  <div class="mapview" id="mapview">
+  <div class="mapview" id="mapview" tabindex="0" role="region" aria-label="互动地图，方向键平移，加减键缩放，Home键总览">
     <div class="scene" id="scene">
       <div class="zoomwrap" id="zoomwrap">
         <img class="mapimg" id="mapimg" alt="太昊陵庙会等距全景">
@@ -331,8 +333,9 @@ for (const type of ['pageswap','pagereveal']) {
       </div>
     </div>
 
+<div class="map-controls" aria-label="地图视野控制"><button id="zoomIn" type="button" aria-label="放大地图">＋</button><button id="zoomOut" type="button" aria-label="缩小地图">−</button><button id="mapOverview" type="button" aria-label="查看地图总览">全</button></div><div class="map-caption" id="mapCaption" aria-live="polite">点选风物，走近庙会</div>
     <div class="legend">
-      <b>拖拽</b> 平移 · <b>滚轮</b> 缩放 · <b>点击光点</b> 走近看民俗<br>
+      <span class="map-desktop-hint">拖拽平移 · 滚轮缩放</span><span class="map-touch-hint">单指漫游 · 双指缩放</span> · 点击光点探索<br>
       <i style="background:#B33B24"></i>中轴线　<i style="background:#3E7C6F"></i>东片区　<i style="background:#3D6B8C"></i>西片区　<i style="background:#C99A2C"></i>全域民俗
     </div>
 
@@ -345,7 +348,7 @@ for (const type of ['pageswap','pagereveal']) {
 
     <div id="tilebar">
       <div class="tile">
-        <svg id="mini" viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet">
+        <svg id="mini" role="button" tabindex="0" aria-label="缩略地图，点击移动视野" viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet">
           <image id="miniImg" x="0" y="0" width="1536" height="1024" preserveAspectRatio="xMidYMid meet"/>
           <rect id="miniRect" x="0" y="0" width="1536" height="1024" fill="rgba(179,59,36,.18)" stroke="#B33B24" stroke-width="6"/>
         </svg>
@@ -402,6 +405,7 @@ for (const type of ['pageswap','pagereveal']) {
           <button class="chip lay" data-layer="heat" type="button"><i style="background:#D85A30"></i>人流热度层</button>
         </div>
       </div>
+<div class="tool-section sound-settings"><p class="tool-label">声音设置</p><label for="soundVolume">音量 <output id="soundVolumeValue">28%</output></label><input id="soundVolume" type="range" min="0" max="100" value="28" aria-label="提示音音量"><button class="btn" id="soundMenuToggle" type="button" aria-pressed="false">开启声音</button><button class="btn" id="soundPreview" type="button">试听合成音景</button><p class="sound-note" id="soundStatus" aria-live="polite">合成音景，非现场录音。需手动开启。</p></div>
       <div class="tool-section tool-utilities">
         <button class="btn" id="btnTrail" type="button">显示巡游路线</button>
         <button class="btn" id="btnReset" type="button">复位地图</button>
@@ -421,25 +425,25 @@ for (const type of ['pageswap','pagereveal']) {
     </div>
 
     <div class="dcard" id="dcard">
-      <button class="close" id="dcardClose">✕</button>
+      <button class="close" id="dcardClose" type="button" aria-label="返回地图">✕</button>
       <span class="cat" id="dcardCat"></span>
       <h3 id="dcardTitle"></h3>
       <div class="step" id="dcardStep"></div>
       <div class="dtabs" id="dcardTabs"></div>
       <div class="dbody" id="dcardBody"></div>
       <div class="acts">
-        <div class="ab audio" id="dAudioBtn">▷ 听民俗音频</div>
-        <div class="ab stamp" id="dStampBtn">在此进香 · 盖香印</div>
+        <button class="ab audio" id="dAudioBtn" type="button">▷ 试听合成音景</button>
+        <button class="ab stamp" id="dStampBtn" type="button">在此进香 · 盖香印</button>
       </div>
       <div class="tags" id="dcardTags"></div>
     </div>
 
-    <div class="pop" id="pop"><span class="x" id="popX">✕</span><b></b><span class="pmedia"></span><span class="txt"></span></div>
+    <div class="pop" id="pop"><button type="button" class="x" id="popX" aria-label="关闭媒体">✕</button><b></b><span class="pmedia"></span><span class="txt"></span></div>
   </div>
 
-  <div id="atlas">
+  <div id="atlas" role="dialog" aria-modal="true" aria-label="民俗图鉴">
     <div class="box">
-      <h2>民俗图鉴 · 全部点位</h2>
+      <div class="atlas-heading"><h2>民俗图鉴 · 全部点位</h2><button class="tool-close" id="atlasClose" type="button" aria-label="关闭图鉴">✕</button></div>
       <div class="atabs" id="atlasTabs"></div>
       <div class="grid" id="atlasGrid"></div>
     </div>
@@ -451,6 +455,8 @@ for (const type of ['pageswap','pagereveal']) {
 </div>
 
 <script src="assets/vendor/gsap.min.js"></script>
+<script src="assets/vendor/motion-mini.js"></script><script src="assets/js/motion-ui.js"></script>
+<script src="assets/vendor/howler.core-2.2.4.min.js"></script><script src="assets/js/sound.js"></script>
 <script>
 /* ================= 底图与版画插画 ================= */
 const MAP_SRC = 'assets/img/001.jpg';
@@ -503,7 +509,8 @@ const KC = { '建筑':'#3D6B8C','民俗':'#3E7C6F','非遗':'#B33B24','美食':'
 
 /* 全局状态（提前声明，供下方各模块初始化时安全引用） */
 let tourOn = false, touring = false, curDay = 0, lastMoved = 0;
-let stampSet = JSON.parse(localStorage.getItem('thaihao-stamps') || '{}');
+let stampSet={};
+try{const saved=JSON.parse(localStorage.getItem('thaihao-stamps')||'{}');if(saved&&typeof saved==='object'&&!Array.isArray(saved))stampSet=saved}catch{}
 
 /* ================= 点位（px/py 为底图像素坐标，热点按百分比定位） ================= */
 const POIS = [
@@ -666,88 +673,137 @@ const hotlayer= document.getElementById('hotlayer');
 document.getElementById('mapimg').src = MAP_SRC;
 document.getElementById('miniImg').setAttribute('href', MAP_SRC);
 
-let view = { x: 0, y: 0, k: 1 }, S = 1, OX = 0, OY = 0;
-
-function layout() {
-  const cw = mapview.clientWidth, ch = mapview.clientHeight;
-  if (!cw || !ch) return;
-  const fit = Math.min(cw / VW, ch / VH);
-  const s = fit * view.k;
-  S = s;
-  OX = (cw - VW * s) / 2 + view.x;
-  OY = (ch - VH * s) / 2 + view.y;
-  wrap.style.transform = `translate(${OX}px,${OY}px) scale(${s})`;
-  const inv = 1 / s;                       /* 光点反向缩放，保持恒定尺寸 */
-  hotlayer.querySelectorAll('.hot').forEach(el => {
-    el.style.transform = `translate(-50%,-50%) scale(${inv})`;
-  });
-  const mr = document.getElementById('miniRect');
-  if (mr) {
-    mr.setAttribute('x', -OX / S); mr.setAttribute('y', -OY / S);
-    mr.setAttribute('width', cw / S); mr.setAttribute('height', ch / S);
+// A single camera drives gestures, keyboard and navigation in map coordinates.
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+const isPhone=()=>matchMedia('(max-width:680px)').matches;
+let view={x:0,y:0,k:isPhone()?1.95:1},S=1,OX=0,OY=0;
+let cameraFrame=0,finishCamera=null,labelFrame=0,mapGesture=false;
+const mapFit=()=>Math.min(mapview.clientWidth/VW,mapview.clientHeight/VH)*.96;
+function boundCamera(){
+ view.k=Math.max(.9,Math.min(4.5,view.k));const s=mapFit()*view.k,cw=mapview.clientWidth,ch=mapview.clientHeight;
+ const bx=Math.max(0,(VW*s-cw)/2),by=Math.max(0,(VH*s-ch)/2);
+ view.x=Math.max(-bx-24,Math.min(bx+24,view.x));view.y=Math.max(-by-24,Math.min(by+24,view.y));
+}
+const labelPriority=['q1','q6','q9','q4','f2','f4','q2','q8','e1','w1','f1','f3'];
+function updateLabels(){
+ labelFrame=0;const cw=mapview.clientWidth,ch=mapview.clientHeight,rects=[];
+ const mapRect=mapview.getBoundingClientRect();
+ const reserved=[...mapview.querySelectorAll('.map-caption,.map-controls,.legend,#tilebar')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return{l:r.left-mapRect.left,t:r.top-mapRect.top,r:r.right-mapRect.left,b:r.bottom-mapRect.top}});
+ const dots=POIS.filter(p=>!document.getElementById('hot-'+p.id)?.classList.contains('hide')).map(p=>({id:p.id,x:OX+p.px*S,y:OY+p.py*S}));
+ const max=isPhone()?(view.k>2.5?8:6):(view.k>1.6?17:13);
+ const ranked=[...hotlayer.querySelectorAll('.hot')].sort((a,b)=>{
+  const score=e=>e.matches(':focus,:hover,.active')?-100:(labelPriority.indexOf(e.dataset.id)<0?99:labelPriority.indexOf(e.dataset.id));return score(a)-score(b);
+ });
+ for(const el of ranked){
+  const p=POIS.find(p=>p.id===el.dataset.id),lab=el.querySelector('.lab');
+  const x=OX+p.px*S,y=OY+p.py*S,w=lab.offsetWidth||100,h=lab.offsetHeight||30,force=el.matches(':focus,:hover,.active');let found=null;
+  if(!el.classList.contains('hide')&&(rects.length<max||force))for(const[dx,dy]of[[p.lx*.62,p.ly*.62],[0,-33],[0,33],[w/2+23,0],[-w/2-23,0]]){
+   const r={l:x+dx-w/2,t:y+dy-h/2,r:x+dx+w/2,b:y+dy+h/2};
+   if(r.l<8||r.r>cw-8||r.t<8||r.b>ch-14||(r.r>cw-66&&r.t<164))continue;
+   if(reserved.some(q=>r.l<q.r+5&&r.r>q.l-5&&r.t<q.b+5&&r.b>q.t-5))continue;
+   if(dots.some(q=>q.id!==p.id&&q.x>r.l-10&&q.x<r.r+10&&q.y>r.t-10&&q.y<r.b+10))continue;
+   if(rects.some(q=>r.l<q.r+7&&r.r>q.l-7&&r.t<q.b+7&&r.b>q.t-7))continue;
+   found={dx,dy,r};break;
   }
+  el.classList.toggle('label-visible',!!found);
+  if(found){el.style.setProperty('--lx',found.dx+'px');el.style.setProperty('--ly',found.dy+'px');rects.push(found.r)}
+ }
 }
-const apply = layout;
-
-function toMap(cx, cy) {
-  const r = mapview.getBoundingClientRect();
-  return [(cx - r.left - OX) / S, (cy - r.top - OY) / S];
+function layout(){
+ const cw=mapview.clientWidth,ch=mapview.clientHeight;if(!cw||!ch)return;
+ boundCamera();S=mapFit()*view.k;OX=(cw-VW*S)/2+view.x;OY=(ch-VH*S)/2+view.y;
+ wrap.style.transform=`translate(${OX}px,${OY}px) scale(${S})`;
+ hotlayer.querySelectorAll('.hot').forEach(el=>el.style.transform=`scale(${1/S}) translate(-22px,-22px)`);
+ const mr=document.getElementById('miniRect');mr.setAttribute('x',Math.max(0,-OX/S));mr.setAttribute('y',Math.max(0,-OY/S));
+ mr.setAttribute('width',Math.min(VW,cw/S));mr.setAttribute('height',Math.min(VH,ch/S));
+ document.getElementById('zoomOut').disabled=view.k<=.901;document.getElementById('zoomIn').disabled=view.k>=4.499;
+ if(!labelFrame)labelFrame=requestAnimationFrame(updateLabels);
 }
-function targetFor(p, k) {
-  const cw = mapview.clientWidth, ch = mapview.clientHeight;
-  const fit = Math.min(cw / VW, ch / VH), s = fit * k;
-  return { x: cw / 2 - (cw - VW * s) / 2 - p.px * s,
-           y: ch / 2 - (ch - VH * s) / 2 - p.py * s, k };
+const apply=layout;
+function toMap(cx,cy){const r=mapview.getBoundingClientRect();return[(cx-r.left-OX)/S,(cy-r.top-OY)/S]}
+function targetFor(p,k){const s=mapFit()*k;return{x:(VW/2-p.px)*s,y:(VH/2-p.py)*s,k}}
+function cancelCamera(){cancelAnimationFrame(cameraFrame);cameraFrame=0;if(finishCamera){finishCamera(false);finishCamera=null}}
+function moveCamera(target,duration=.48){
+ cancelCamera();if(reducedMotion.matches||duration===0){Object.assign(view,target);apply();return Promise.resolve(true)}
+ return new Promise(resolve=>{finishCamera=resolve;const from={...view},start=performance.now();
+  function tick(now){const t=Math.min(1,(now-start)/(duration*1000)),e=1-Math.pow(1-t,3);
+   for(const key of['x','y','k'])view[key]=from[key]+(target[key]-from[key])*e;apply();
+   if(t<1)cameraFrame=requestAnimationFrame(tick);else{cameraFrame=0;finishCamera=null;resolve(true)}
+  }cameraFrame=requestAnimationFrame(tick);
+ });
 }
-function centerOn(p, k = 1.5, dur = 0.9) {
-  const t = targetFor(p, k);
-  return tween(view, { x: t.x, y: t.y, k: t.k, onUpdate: apply }, dur, 'power2.inOut');
+function centerOn(p,k=1.7,dur=.55){return moveCamera(targetFor(p,k),dur)}
+function zoomAt(factor,cx,cy){
+ const r=mapview.getBoundingClientRect();cx=cx??r.left+r.width/2;cy=cy??r.top+r.height/2;
+ const[u,v]=toMap(cx,cy),k=Math.max(.9,Math.min(4.5,view.k*factor)),s=mapFit()*k;
+ return moveCamera({k,x:cx-r.left-(r.width-VW*s)/2-u*s,y:cy-r.top-(r.height-VH*s)/2-v*s},.22);
 }
-
-mapview.addEventListener('wheel', e => {
-  e.preventDefault();
-  const [u, v] = toMap(e.clientX, e.clientY);
-  const r = mapview.getBoundingClientRect();
-  const mx = e.clientX - r.left, my = e.clientY - r.top;
-  view.k = Math.min(3.2, Math.max(0.7, view.k * (e.deltaY < 0 ? 1.12 : 0.89)));
-  layout();
-  view.x += mx - (OX + u * S);
-  view.y += my - (OY + v * S);
-  layout();
-}, { passive: false });
-
-let drag = null;
-mapview.addEventListener('pointerdown', e => {
-  if (e.target.closest('.topbar') || e.target.closest('#tilebar') || e.target.closest('#timebar') ||
-      e.target.closest('#calbox') || e.target.closest('.capsbar')) return;
-  drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: 0 };
+mapview.addEventListener('wheel',e=>{
+ if(e.target.closest('button:not(.hot),input,#tilebar,#timebar,#calbox'))return;
+ e.preventDefault();zoomAt(Math.exp(-e.deltaY*(e.deltaMode===1?22:1)*.0016),e.clientX,e.clientY);
+},{passive:false});
+const pointers=new Map();let gesture=null;
+function seedGesture(){
+ const pts=[...pointers.values()];if(!pts.length){gesture=null;return}
+ if(pts.length===1)gesture={kind:'pan',x:pts[0].x,y:pts[0].y,vx:view.x,vy:view.y};
+ else{const[a,b]=pts,cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;gesture={kind:'pinch',distance:Math.hypot(a.x-b.x,a.y-b.y),k:view.k,anchor:toMap(cx,cy)}}
+}
+mapview.addEventListener('pointerdown',e=>{
+ if(e.button!==0||e.target.closest('button:not(.hot),input,#tilebar,#timebar,#calbox,.legend'))return;
+ cancelCamera();if(!pointers.size)lastMoved=0;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ (e.target.closest('.hot')||mapview).setPointerCapture(e.pointerId);seedGesture();
 });
-window.addEventListener('pointermove', e => {
-  if (!drag) return;
-  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-  drag.moved = Math.max(drag.moved, Math.abs(dx) + Math.abs(dy));
-  view.x = drag.vx + dx; view.y = drag.vy + dy; apply();
+mapview.addEventListener('pointermove',e=>{
+ if(!pointers.has(e.pointerId)||!gesture)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(gesture.kind==='pan'){
+  const dx=e.clientX-gesture.x,dy=e.clientY-gesture.y;lastMoved=Math.max(lastMoved,Math.abs(dx)+Math.abs(dy));view.x=gesture.vx+dx;view.y=gesture.vy+dy;
+ }else{
+  const[a,b]=[...pointers.values()];if(!b)return;lastMoved=100;
+  const r=mapview.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top;
+  view.k=Math.max(.9,Math.min(4.5,gesture.k*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(gesture.distance,1)));
+  const s=mapFit()*view.k;view.x=cx-(r.width-VW*s)/2-gesture.anchor[0]*s;view.y=cy-(r.height-VH*s)/2-gesture.anchor[1]*s;
+ }
+ mapGesture=lastMoved>6;mapview.classList.toggle('is-dragging',mapGesture);apply();
 });
-window.addEventListener('pointerup', () => { if (drag) lastMoved = drag.moved; drag = null; });
-document.getElementById('btnReset').onclick = () => {
-  view = { x: 0, y: 0, k: 1 }; apply(); closeDetail();
-};
+function endPointer(e){pointers.delete(e.pointerId);seedGesture();if(!pointers.size){mapGesture=false;mapview.classList.remove('is-dragging')}}
+for(const type of['pointerup','pointercancel','lostpointercapture'])mapview.addEventListener(type,endPointer);
+document.getElementById('btnReset').onclick=async()=>{stopTour();await closeDetail();moveCamera({x:0,y:0,k:isPhone()?1.95:1})};
+document.getElementById('zoomIn').onclick=()=>zoomAt(1.3);document.getElementById('zoomOut').onclick=()=>zoomAt(1/1.3);
+document.getElementById('mapOverview').onclick=()=>moveCamera({x:0,y:0,k:1});
+mapview.addEventListener('keydown',e=>{
+ if(e.target.closest('input,textarea,select,button,[contenteditable="true"]'))return;
+ const arrows={ArrowLeft:[80,0],ArrowRight:[-80,0],ArrowUp:[0,80],ArrowDown:[0,-80]};
+ if(arrows[e.key]){e.preventDefault();const[dx,dy]=arrows[e.key];moveCamera({...view,x:view.x+dx,y:view.y+dy},.2)}
+ else if(['+','=','-','Home'].includes(e.key)){e.preventDefault();e.key==='Home'?moveCamera({x:0,y:0,k:1}):zoomAt(e.key==='-'?1/1.25:1.25)}
+});
+const mini=document.getElementById('mini');
+mini.addEventListener('click',e=>{const r=mini.getBoundingClientRect();centerOn({px:(e.clientX-r.left)/r.width*VW,py:(e.clientY-r.top)/r.height*VH},view.k,.4)});
+mini.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();moveCamera({x:0,y:0,k:1})}});
 
 /* ================= 呼吸光点（百分比定位） ================= */
 function renderHotspots() {
   hotlayer.innerHTML = POIS.map((p, i) => {
     const c = CAT[p.cat].color;
-    return `<div class="hot" id="hot-${p.id}" data-id="${p.id}" data-cat="${p.cat}"
+    return `<button type="button" class="hot" id="hot-${p.id}" data-id="${p.id}" data-cat="${p.cat}" aria-label="探索${p.name}"
         style="left:${(p.px / VW * 100).toFixed(3)}%;top:${(p.py / VH * 100).toFixed(3)}%;
                --c:${c};--lx:${(p.lx*0.62).toFixed(0)}px;--ly:${(p.ly*0.62).toFixed(0)}px;animation-delay:${(i * 0.008).toFixed(2)}s">
       <span class="ring"></span><span class="ring ring2"></span>
       <span class="dot"></span>
-      <span class="lab">${p.name}</span>
-    </div>`;
+      <span class="lab" aria-hidden="true">${p.name}</span>
+    </button>`;
   }).join('');
   hotlayer.querySelectorAll('.hot').forEach(el => {
     const p = POIS.find(q => q.id === el.dataset.id);
-    el.addEventListener('click', ev => { ev.stopPropagation(); if (lastMoved > 6) return; openDetail(p); });
+    el.addEventListener('click',ev=>{
+      ev.stopPropagation();if(ev.detail&&lastMoved>6)return;
+      let chosen=p;
+      if(ev.detail&&!ev.target.closest('.lab')){
+        const r=mapview.getBoundingClientRect();
+        chosen=POIS.filter(q=>!document.getElementById('hot-'+q.id).classList.contains('hide')).reduce((best,q)=>Math.hypot(r.left+OX+q.px*S-ev.clientX,r.top+OY+q.py*S-ev.clientY)<Math.hypot(r.left+OX+best.px*S-ev.clientX,r.top+OY+best.py*S-ev.clientY)?q:best,p);
+      }
+      openDetail(chosen);
+    });
+    for(const event of ['focus','blur','pointerenter','pointerleave'])el.addEventListener(event,()=>{if(!mapGesture)updateLabels()});
   });
   layout(); syncStamps(); applyLayers();
 }
@@ -773,6 +829,7 @@ function applyLayers() {
   document.getElementById('trail').setAttribute('visibility',
     (tourOn ? 'visible' : 'hidden'));
   refreshHeat();
+  if(!labelFrame)labelFrame=requestAnimationFrame(updateLabels);
 }
 function refreshHeat() {
   const v = heatI(curDay);
@@ -845,7 +902,7 @@ function fillMedia(p){
 function layoutDetail(){
   const el = document.getElementById('mapcrop'); if (!el || !state.cur) return;
   const box = dmedia.getBoundingClientRect(); if (!box.width) return;
-  const z = 2.3;
+  const z = Math.max(box.width/VW,box.height/VH)*1.65;
   el.style.transform =
     `translate(${box.width/2 - state.cur.px*z}px,${box.height/2 - state.cur.py*z}px) scale(${z})`;
 }
@@ -869,8 +926,8 @@ function safePlay(v){
 }
 function fillSubs(p){
   dsubs.innerHTML = (SUBS[p.id] || []).map((s, i) =>
-    `<span class="sub ${s.v ? 'vid' : ''}" data-i="${i}" style="left:${s.x}%;top:${s.y}%">` +
-    `${(s.v || s.img) ? '▶' : i + 1}</span>`).join('');
+    `<button type="button" aria-label="${s.t}" class="sub ${s.v ? 'vid' : ''}" data-i="${i}" style="left:${s.x}%;top:${s.y}%">` +
+    `${(s.v || s.img) ? '▶' : i + 1}</button>`).join('');
   dsubs.querySelectorAll('.sub').forEach(el => el.addEventListener('click', ev => {
     ev.stopPropagation();
     const s = SUBS[p.id][+el.dataset.i];
@@ -896,11 +953,11 @@ function fillSubs(p){
     pop.classList.toggle('wide', isMedia);
     pop.classList.add('show');
     const r = el.getBoundingClientRect();
-    const pw = isMedia ? 330 : 250;
+    const pw = Math.min(isMedia ? 330 : 250,window.innerWidth-24);
     let lx = r.right + 14, ly = r.top - 6;
     if (lx + pw > window.innerWidth - 16) lx = r.left - pw - 14;
     ly = Math.max(120, Math.min(ly, window.innerHeight - (s.v ? 390 : (s.img ? 330 : 150))));
-    pop.style.left = lx + 'px'; pop.style.top = ly + 'px';
+    pop.style.left = Math.max(12,Math.min(lx,window.innerWidth-pw-12)) + 'px'; pop.style.top = ly + 'px';
   }));
 }
 function hidePop(){
@@ -920,7 +977,7 @@ function fillCard(p){
   document.getElementById('dcardTags').innerHTML = p.tags.map(t => `<i>${t}</i>`).join('');
   const tabs = ['习俗','非遗','提示'];
   document.getElementById('dcardTabs').innerHTML =
-    tabs.map(t => `<span class="dtab ${cardTab===t?'on':''}" data-t="${t}">${t}</span>`).join('');
+    tabs.map(t => `<button type="button" class="dtab ${cardTab===t?'on':''}" data-t="${t}">${t}</button>`).join('');
   const heritage = (SUBS.HERITAGE && SUBS.HERITAGE[p.id]) ||
     '属「太昊伏羲祭典」组成部分 —— 2006 年首批国家级非物质文化遗产。';
   const body = document.getElementById('dcardBody');
@@ -939,46 +996,42 @@ function highlight(p) {
   document.querySelectorAll('.hot').forEach(el =>
     el.classList.toggle('active', el.dataset.id === p.id));
 }
-function openDetail(p) {
-  if (state.level === 'detail') return swapDetail(p);
-  state.level = 'detail'; state.cur = p; cardTab = '习俗';
-  const sx = OX + p.px * S, sy = OY + p.py * S;
-  scene.style.transformOrigin = `${sx}px ${sy}px`;   /* 以该点位为轴心推镜 */
-  mapview.classList.add('pushing');
-  fillMedia(p); fillSubs(p); fillCard(p); highlight(p);
-  document.getElementById('dtagbig').textContent = p.name;
-  detailview.style.display = 'block';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    detailview.classList.add('in');
-    layoutDetail();
-  }));
-  renderCaps();
-  return wait(560);
+let detailToken=0,returnView=null,returnFocus=null;
+async function loadPointImage(p){
+ if(!ART[p.id])return;const image=new Image();image.src=ART[p.id];
+ try{await Promise.race([image.decode(),wait(1800)])}catch{}
 }
-async function swapDetail(p) {
-  state.cur = p; cardTab = '习俗'; hidePop();
-  detailview.classList.add('fading');
-  await wait(230);
-  fillMedia(p); fillSubs(p); fillCard(p); highlight(p);
-  document.getElementById('dtagbig').textContent = p.name;
-  detailview.classList.remove('fading');
-  layoutDetail();
-  renderCaps();
+async function openDetail(p){
+ if(state.level==='detail')return swapDetail(p);
+ const token=++detailToken;if(state.level==='map'){returnView={...view};returnFocus=document.activeElement}
+ state.level='opening';state.cur=p;cardTab='习俗';highlight(p);
+ document.getElementById('mapCaption').textContent='走近 · '+p.name;window.TaihaoSound?.playCue('point');
+ await Promise.all([loadPointImage(p),centerOn(p,Math.max(view.k,isPhone()?2.3:1.7),.42)]);
+ if(token!==detailToken)return;
+ const r=mapview.getBoundingClientRect(),sx=r.left+OX+p.px*S,sy=r.top+OY+p.py*S;
+ scene.style.transformOrigin=`${sx-r.left}px ${sy-r.top}px`;
+ fillMedia(p);fillSubs(p);fillCard(p);state.level='detail';
+ document.getElementById('dtagbig').textContent=p.name;
+ detailview.classList.remove('out','fading');detailview.style.display='block';
+ document.querySelector('.stage').classList.add('has-detail');mapview.inert=true;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  if(token!==detailToken)return;detailview.classList.add('in');mapview.classList.add('pushing');layoutDetail();document.getElementById('dcardClose').focus({preventScroll:true});
+ }));renderCaps();return wait(reducedMotion.matches?0:400);
 }
-function closeDetail() {
-  if (state.level !== 'detail') return;
-  hidePop();
-  detailview.classList.remove('in');
-  detailview.classList.add('out');
-  mapview.classList.remove('pushing');
-  setTimeout(() => {
-    detailview.classList.remove('out');
-    detailview.style.display = 'none';
-    state.level = 'map'; state.cur = null;
-    document.querySelectorAll('.hot').forEach(el => el.classList.remove('active'));
-    renderCaps();
-  }, 470);
-  document.getElementById('btnTrail').textContent = tourOn ? '隐藏巡游路线' : '显示巡游路线';
+async function swapDetail(p){
+ const token=++detailToken;hidePop();detailview.classList.add('fading');window.TaihaoSound?.playCue('point');
+ await Promise.all([loadPointImage(p),wait(reducedMotion.matches?0:160)]);if(token!==detailToken)return;
+ state.level='detail';state.cur=p;cardTab='习俗';fillMedia(p);fillSubs(p);fillCard(p);highlight(p);
+ document.getElementById('dtagbig').textContent=p.name;detailview.classList.remove('fading');layoutDetail();renderCaps();
+}
+async function closeDetail({fromTour=false}={}){
+ if(!fromTour&&touring)stopTour();if(state.level==='map')return;
+ ++detailToken;hidePop();window.TaihaoSound?.stop();
+ detailview.classList.remove('in','fading');detailview.classList.add('out');mapview.classList.remove('pushing');mapview.inert=false;
+ document.querySelector('.stage').classList.remove('has-detail');const token=detailToken;state.level='map';state.cur=null;highlight({id:null});renderCaps();
+ document.getElementById('mapCaption').textContent='点选风物，走近庙会';if(returnView)moveCamera(returnView,.45);
+ await wait(reducedMotion.matches?0:360);if(token!==detailToken)return;
+ detailview.classList.remove('out');detailview.style.display='none';if(returnFocus?.isConnected&&returnFocus.getClientRects().length&&!returnFocus.closest('[hidden],[inert]'))returnFocus.focus({preventScroll:true});else mapview.focus({preventScroll:true});returnView=null;
 }
 
 /* ================= 场景状态胶囊按钮 ================= */
@@ -990,11 +1043,11 @@ function renderCaps() {
     h += `<span class="cap flat">共 ${POIS.length} 处点位 · 点击呼吸光点走近场景</span>`;
   } else {
     const i = SEQ.indexOf(s.cur);
-    h += `<span class="cap" data-act="home">‹ 返回地图</span>`;
-    h += `<span class="cap ${i > 0 ? '' : 'off'}" data-act="prev">‹ 上一站</span>`;
+    h += `<button type="button" class="cap" data-act="home">‹ 返回地图</button>`;
+    h += `<button type="button" class="cap ${i > 0 ? '' : 'off'}" ${i>0?'':'disabled'} data-act="prev">‹ 上一站</button>`;
     h += `<span class="cap on">${s.cur.step}</span>`;
     h += `<span class="cap flat">${s.cur.name}</span>`;
-    h += `<span class="cap ${i < SEQ.length - 1 ? '' : 'off'}" data-act="next">下一站 ›</span>`;
+    h += `<button type="button" class="cap ${i < SEQ.length - 1 ? '' : 'off'}" ${i<SEQ.length-1?'':'disabled'} data-act="next">下一站 ›</button>`;
     if (touring) h += `<span class="cap on">巡游中…</span>`;
   }
   capsbar.innerHTML = h;
@@ -1008,7 +1061,8 @@ capsbar.addEventListener('click', e => {
 });
 renderCaps();
 window.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeDetail();
+  if(e.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+  if(e.key==='Escape'){if(atlas.classList.contains('show')){closeAtlas();return}if(pop.classList.contains('show')){hidePop();return}if(!moreTools.hidden)return;closeDetail();}
   if (state.level === 'detail' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     const i = SEQ.indexOf(state.cur);
     const t = SEQ[i + (e.key === 'ArrowRight' ? 1 : -1)];
@@ -1023,14 +1077,14 @@ function renderAtlas(){
   const tabs = ['全部','建筑','民俗','非遗','美食'];
   atlasTabs.innerHTML = tabs.map(t => {
     const n = t === '全部' ? POIS.length : POIS.filter(p => KIND[p.id] === t).length;
-    return `<span class="chip ${atlasTab===t?'on':''}" data-t="${t}">${t} ${n}</span>`;
+    return `<button type="button" class="chip ${atlasTab===t?'on':''}" data-t="${t}">${t} ${n}</button>`;
   }).join('');
   atlasGrid.innerHTML = POIS.filter(p => atlasTab === '全部' || KIND[p.id] === atlasTab).map(p => `
-    <div class="item" data-id="${p.id}">
+    <button type="button" class="item" data-id="${p.id}">
       <span class="k" style="background:${KC[KIND[p.id]]}">${KIND[p.id]}</span>
       <div class="n">${p.name}</div>
       <div class="s">${p.step}</div>
-    </div>`).join('');
+    </button>`).join('');
 }
 atlasTabs.addEventListener('click', e => {
   const t = e.target.closest('[data-t]'); if (!t) return;
@@ -1040,10 +1094,12 @@ atlasGrid.addEventListener('click', e => {
   const it = e.target.closest('[data-id]'); if (!it) return;
   atlas.classList.remove('show');
   const p = POIS.find(q => q.id === it.dataset.id);
-  centerOn(p, 1.5); openDetail(p);
+  openDetail(p);
 });
-document.getElementById('btnAtlas').onclick = () => { renderAtlas(); atlas.classList.add('show'); };
-atlas.addEventListener('click', e => { if (e.target === atlas) atlas.classList.remove('show'); });
+function closeAtlas(){atlas.classList.remove('show');document.getElementById('btnAtlas').focus()}
+document.getElementById('btnAtlas').onclick=()=>{renderAtlas();atlas.classList.add('show');window.TaihaoMotion?.reveal(atlas.querySelector('.box'));document.getElementById('atlasClose').focus()};
+document.getElementById('atlasClose').onclick=closeAtlas;
+atlas.addEventListener('click',e=>{if(e.target===atlas)closeAtlas()});
 
 /* ================= 搜索 ================= */
 const sugg = document.getElementById('sugg'), searchBox = document.getElementById('search');
@@ -1060,7 +1116,7 @@ sugg.addEventListener('click', e => {
   const d = e.target.closest('[data-id]'); if (!d) return;
   sugg.style.display = 'none'; searchBox.value = '';
   const p = POIS.find(q => q.id === d.dataset.id);
-  centerOn(p, 1.5); openDetail(p);
+  openDetail(p);
 });
 
 /* ================= 进香打卡 · 盖香印 ================= */
@@ -1084,11 +1140,12 @@ function refreshStampBtn(){
 document.getElementById('dStampBtn').addEventListener('click', () => {
   if (!state.cur || !STAMPS.includes(state.cur.id) || stampSet[state.cur.id]) return;
   stampSet[state.cur.id] = dayName(curDay);
-  localStorage.setItem('thaihao-stamps', JSON.stringify(stampSet));
+  try{localStorage.setItem('thaihao-stamps',JSON.stringify(stampSet))}catch{}
   updateStampUI(); syncStamps(); refreshStampBtn();
+  window.TaihaoSound?.playCue('stamp');
   const fx = document.getElementById('stampFx'), r = document.getElementById('dcard').getBoundingClientRect();
   fx.style.left = (r.left + 30) + 'px'; fx.style.top = (r.top + 50) + 'px';
-  if (hasGsap) {
+  if (hasGsap && !reducedMotion.matches) {
     gsap.fromTo(fx, { opacity: 0, scale: 2.2 }, { opacity: .9, scale: 1, duration: .35, ease: 'power3.in' });
     gsap.to(fx, { opacity: 0, duration: .6, delay: .9 });
   } else {
@@ -1097,34 +1154,33 @@ document.getElementById('dStampBtn').addEventListener('click', () => {
   }
 });
 document.getElementById('stampReset').onclick = () => {
-  stampSet = {}; localStorage.removeItem('thaihao-stamps');
+  stampSet={};try{localStorage.removeItem('thaihao-stamps')}catch{}
   updateStampUI(); syncStamps(); refreshStampBtn();
 };
 updateStampUI();
 
-/* ================= 民俗音频（五声音阶示例，正式音频待录制） ================= */
-let actx = null;
-document.getElementById('dAudioBtn').addEventListener('click', function(){
-  try {
-    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    const notes = [523.25, 587.33, 659.25, 783.99, 880, 659.25];
-    notes.forEach((f, i) => {
-      const o = actx.createOscillator(), g = actx.createGain();
-      o.type = 'sine'; o.frequency.value = f;
-      const t = actx.currentTime + i * 0.3;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
-      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.65);
-    });
-    this.textContent = '♪ 播放中…';
-    setTimeout(() => this.textContent = '▷ 听民俗音频', 2200);
-  } catch(e){ this.textContent = '音频不可用'; }
-});
+/* User-activated synthesized sounds, never described as field recordings. */
+const soundToggle=document.getElementById('soundToggle'),soundVolume=document.getElementById('soundVolume');
+function syncSoundUI(){
+ const s=window.TaihaoSound?.state,enabled=!!s?.enabled,preview=s?.active==='preview'||s?.pending==='preview';
+ soundToggle.textContent=enabled?'声音：开':'声音：关';soundToggle.setAttribute('aria-pressed',String(enabled));soundToggle.setAttribute('aria-label',enabled?'关闭声音':'开启声音');
+ document.getElementById('soundMenuToggle').textContent=enabled?'关闭声音':'开启声音';document.getElementById('soundMenuToggle').setAttribute('aria-pressed',String(enabled));
+ if(s){soundVolume.value=Math.round(s.volume*100);document.getElementById('soundVolumeValue').textContent=Math.round(s.volume*100)+'%'}
+ document.getElementById('soundStatus').textContent=s?.available===false?'此浏览器声音暂不可用。':preview?'正在试听合成音景，可再次点击停止。':'合成音景，非现场录音。需手动开启。';
+ document.getElementById('dAudioBtn').textContent=preview?'Ⅱ 停止音景':'▷ 试听合成音景';
+ document.getElementById('soundPreview').textContent=preview?'停止合成音景':'试听合成音景';
+}
+soundToggle.onclick=()=>{window.TaihaoSound?.toggle();window.TaihaoSound?.playCue('enter');syncSoundUI()};
+document.getElementById('soundMenuToggle').onclick=soundToggle.onclick;
+soundVolume.oninput=()=>{window.TaihaoSound?.setVolume(Number(soundVolume.value)/100);syncSoundUI()};
+function previewSound(){const api=window.TaihaoSound;if(!api)return;if(api.state.active==='preview'||api.state.pending==='preview')api.stop();else{api.setEnabled(true);api.preview()}syncSoundUI()}
+document.getElementById('soundPreview').onclick=previewSound;document.getElementById('dAudioBtn').onclick=previewSound;
+document.addEventListener('taihao:soundchange',syncSoundUI);syncSoundUI();
 
 /* ================= 动画工具（GSAP 优先，断网回退 rAF） ================= */
 const hasGsap = typeof window.gsap !== 'undefined';
 function tween(obj, props, dur, ease = 'power2.inOut'){
+  if(reducedMotion.matches){for(const k of Object.keys(props))if(k!=='onUpdate')obj[k]=props[k];props.onUpdate?.();return Promise.resolve()}
   return new Promise(res => {
     if (hasGsap) gsap.to(obj, { ...props, duration: dur, ease, onComplete: res });
     else {
@@ -1144,26 +1200,21 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
 /* ================= 进香巡游（南 → 北，逐站推镜进入） ================= */
 const pilgrim = document.getElementById('pilgrim');
-document.getElementById('btnTour').onclick = async function(){
-  if (touring) return; touring = true; this.textContent = '巡游中…';
-  if (!tourOn) { tourOn = true; document.getElementById('btnTrail').textContent = '隐藏巡游路线'; }
-  trail.setAttribute('visibility', 'visible');
-  pilgrim.setAttribute('visibility', 'visible');
-  const pos = { x: AXIS[0].px, y: AXIS[0].py };
-  const paint = () => { pilgrim.setAttribute('cx', pos.x); pilgrim.setAttribute('cy', pos.y); };
-  paint();
-  for (const p of AXIS) {
-    await tween(pos, { x: p.px, y: p.py, onUpdate: paint }, 1.0, 'power1.inOut');
-    await centerOn(p, 1.6, 0.6);
-    await openDetail(p);
-    await wait(3400);
-    closeDetail();
-    await wait(520);
-  }
-  pilgrim.setAttribute('visibility', 'hidden');
-  touring = false; this.textContent = '▶ 开始进香巡游';
-  view = { x: 0, y: 0, k: 1 }; apply();
+let tourRun=0;
+function stopTour(){tourRun++;touring=false;document.getElementById('btnTour').textContent='▶ 开始进香巡游';pilgrim.setAttribute('visibility','hidden');if(state.level==='opening')closeDetail({fromTour:true});renderCaps()}
+document.getElementById('btnTour').onclick=async function(){
+ if(touring){stopTour();return}
+ const run=++tourRun;touring=true;this.textContent='■ 停止巡游';await closeDetail({fromTour:true});if(run!==tourRun)return;tourOn=true;
+ document.getElementById('btnTrail').textContent='隐藏巡游路线';trail.setAttribute('visibility','visible');pilgrim.setAttribute('visibility','visible');
+ const pos={x:AXIS[0].px,y:AXIS[0].py},paint=()=>{pilgrim.setAttribute('cx',pos.x);pilgrim.setAttribute('cy',pos.y)};paint();
+ for(const p of AXIS){
+  if(run!==tourRun)return;await tween(pos,{x:p.px,y:p.py,onUpdate:paint},.6,'power1.inOut');if(run!==tourRun)return;
+  await openDetail(p);if(run!==tourRun)return;await wait(4200);if(run!==tourRun)return;
+  await closeDetail({fromTour:true});if(run!==tourRun)return;
+ }
+ stopTour();moveCamera({x:0,y:0,k:isPhone()?1.95:1});
 };
+
 document.querySelectorAll('[data-mode]').forEach(ch => ch.addEventListener('click', () => {
   document.querySelectorAll('[data-mode]').forEach(c => c.classList.remove('on'));
   ch.classList.add('on');
@@ -1185,7 +1236,7 @@ document.getElementById('btnCal').onclick = function(){
   this.textContent = calbox.classList.contains('show') ? '退出校准' : '校准点位';
 };
 mapview.addEventListener('click', e => {
-  if (!calbox.classList.contains('show')) return;
+  if (!calbox.classList.contains('show')||e.target.closest('#calbox,#tilebar,#timebar,.map-controls,.legend')||lastMoved>6) return;
   const [mx, my] = toMap(e.clientX, e.clientY);
   const p = POIS.find(q => q.id === calSel.value); if (!p) return;
   p.px = Math.round(mx); p.py = Math.round(my);
@@ -1201,7 +1252,8 @@ mapview.addEventListener('click', e => {
 detailview.addEventListener('click', e => {
   if (!e.target.closest('.sub') && !e.target.closest('.pop')) hidePop();
 });
-window.addEventListener('resize', () => { layout(); layoutDetail(); });
+let previousPhone=isPhone();
+window.addEventListener('resize',()=>{const phone=isPhone();if(phone!==previousPhone&&Math.abs(view.k-(previousPhone?1.95:1))<.01&&Math.abs(view.x)<1&&Math.abs(view.y)<1)view.k=phone?1.95:1;previousPhone=phone;layout();layoutDetail()});
 
 /* ================= 更多工具菜单（仅管理界面开合） ================= */
 const moreTools = document.getElementById('moreTools'), moreButton = document.getElementById('btnMore');
@@ -1215,6 +1267,7 @@ moreButton.addEventListener('click', () => {
   const opening = moreTools.hidden;
   moreTools.hidden = !opening;
   moreButton.setAttribute('aria-expanded', String(opening));
+  if(opening)window.TaihaoMotion?.reveal(moreTools);
 });
 document.getElementById('btnMoreClose').addEventListener('click', () => closeMoreTools(true));
 document.addEventListener('pointerdown', e => {
@@ -1240,6 +1293,7 @@ calbox.addEventListener('click', e => e.stopPropagation());
 calbox.addEventListener('wheel', e => e.stopPropagation());
 
 /* ================= 启动渲染（放在最后，确保所有状态已就绪） ================= */
+window.__taihaoMap={get camera(){return {...view}},get level(){return state.level},get current(){return state.cur?.id||null},get touring(){return touring},get labels(){return [...hotlayer.querySelectorAll('.label-visible')].map(e=>e.dataset.id)}};
 renderHotspots();
 
 /* A single entrance: reveal the loaded map without another intro or click. */

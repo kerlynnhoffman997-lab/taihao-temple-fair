@@ -25,3 +25,19 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+Motion mini (framer-motion 12.23.24, from the Motion monorepo)
+Repository: https://github.com/motiondivision/motion
+Distribution: https://unpkg.com/framer-motion@12.23.24/dist/dom-mini.js
+Local file: assets/vendor/motion-mini.js
+License: MIT; complete original notice: assets/vendor/motion-license.txt
+
+Howler.js core 2.2.4
+Repository: https://github.com/goldfire/howler.js/tree/v2.2.4
+Fixed commit: 003b917c40cb41cf382ba47ae0ed7a35ca2abe76
+Local file: assets/vendor/howler.core-2.2.4.min.js
+License: MIT; complete original notice: assets/vendor/howler-2.2.4.LICENSE.txt
+
+The sound sprite in assets/audio/taihao-soft-cues.wav is original mathematical
+synthesis for this project, not a field recording. See SYNTHESIS-NOTICE.txt.
