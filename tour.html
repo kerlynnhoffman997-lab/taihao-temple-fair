@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="太昊陵祭祖庙会交互导览：中轴线十站进香动线、东西片区与全域民俗，含泥泥狗、布老虎、担经挑短视频与民俗图鉴。">
+<meta name="theme-color" content="#F5EFE3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta property="og:title" content="太昊陵祭祖庙会 · 进香巡游图">
+<meta property="og:description" content="二月二至三月三，跟着长卷走一遍人祖伏羲的进香路。">
+<meta property="og:type" content="website">
+<title>太昊陵祭祖庙会 · 进香巡游图（正式版）</title>
+<style>
+  :root{
+    --ink:#1C1A17; --paper:#F5EFE3; --cin:#B33B24; --yel:#C99A2C;
+    --grn:#3E7C6F; --blu:#3D6B8C; --line:rgba(28,26,23,.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#DDD5C3;color:var(--ink)}
+  .stage{position:relative;width:100%;height:100%;overflow:hidden}
+
+  /* ============ 首页 · 地图层 ============ */
+  .mapview{position:absolute;inset:0;z-index:10;background:#E7DFCB}
+  .scene{position:absolute;inset:0;
+    transition:transform .68s cubic-bezier(.62,.02,.32,1), opacity .68s ease;
+    transform-origin:50% 50%}
+  .mapview.pushing .scene{transform:scale(1.28);opacity:0}
+  .zoomwrap{position:absolute;left:0;top:0;width:1536px;height:1024px;transform-origin:0 0}
+  .mapimg{width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+  .veclayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  #trail{fill:none;stroke:var(--cin);stroke-width:3.4;stroke-dasharray:9 9;opacity:.65}
+  #pilgrim{fill:var(--yel);stroke:#fff;stroke-width:3}
+  .hotlayer{position:absolute;inset:0}
+
+  /* 呼吸光点：绝对定位 + 百分比坐标 + CSS 脉冲光环 */
+  .hot{position:absolute;width:0;height:0;transform-origin:0 0;cursor:pointer;opacity:0}
+  .hotlayer.ready .hot{opacity:1;animation:hotIn .5s backwards}
+  @keyframes hotIn{from{opacity:0}to{opacity:1}}
+  .hot .dot{position:absolute;left:0;top:0;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;
+    border-radius:50%;background:var(--c);border:2.5px solid #fff;
+    box-shadow:0 2px 8px rgba(28,26,23,.35);transition:transform .2s}
+  .hot .ring{position:absolute;left:0;top:0;width:18px;height:18px;margin:-9px 0 0 -9px;
+    border-radius:50%;border:2px solid var(--c);animation:pulse 2.3s ease-out infinite}
+  .hot .ring2{animation-delay:1.15s}
+  @keyframes pulse{0%{transform:scale(.9);opacity:.6}70%{transform:scale(3.4);opacity:0}100%{transform:scale(3.4);opacity:0}}
+  .hot .lab{position:absolute;left:0;top:0;white-space:nowrap;font-size:13px;font-weight:600;
+    padding:6px 13px;border-radius:17px;background:rgba(255,255,255,.96);
+    border:1px solid var(--line);color:var(--ink);
+    box-shadow:0 4px 14px rgba(28,26,23,.14);transition:background .2s,color .2s;
+    transform:translate(-50%,-50%) translate(var(--lx),var(--ly))}
+  .hot:hover .dot,.hot.active .dot{transform:scale(1.28)}
+  .hot:hover .lab,.hot.active .lab{background:var(--c);color:#fff;border-color:transparent}
+  .hot.stamped .dot{box-shadow:0 0 0 4px rgba(179,59,36,.3)}
+  .hot.hide{display:none}
+
+  /* ============ 顶栏 ============ */
+  .topbar{position:absolute;top:0;left:0;right:0;height:108px;z-index:30;padding:0 26px;
+    background:rgba(245,239,227,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+  .row1{height:54px;display:flex;align-items:center;gap:20px}
+  .brand{font-weight:700;font-size:17px;letter-spacing:2px}
+  .brand em{font-style:normal;color:var(--cin)}
+  .sub{font-size:12px;color:#7a7260}
+  .actions{margin-left:auto;display:flex;gap:10px}
+  .btn{font-size:13px;padding:7px 15px;border-radius:6px;border:1px solid rgba(28,26,23,.2);background:#fff;cursor:pointer;color:var(--ink)}
+  .btn.primary{background:var(--cin);border-color:var(--cin);color:#fff}
+  .btn:hover{filter:brightness(1.06)}
+  .row2{height:44px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .chip{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid rgba(28,26,23,.18);background:#fff;cursor:pointer;color:#57503f}
+  .chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+  .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+  #search{font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid rgba(28,26,23,.2);width:150px;outline:none;background:#fff}
+  #sugg{position:absolute;top:96px;left:0;right:0;margin:0 26px;z-index:40;background:#fff;border-radius:10px;
+    box-shadow:0 12px 30px rgba(28,26,23,.18);display:none;max-height:280px;overflow:auto}
+  #sugg div{padding:9px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f2ede2}
+  #sugg div:hover{background:#FBF6EA}
+  #sugg b{color:var(--cin);font-weight:600}
+
+  /* ============ 场景状态胶囊按钮 ============ */
+  .capsbar{position:absolute;top:124px;left:50%;transform:translateX(-50%);z-index:32;
+    display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;pointer-events:auto}
+  .cap{font-size:12px;padding:7px 16px;border-radius:20px;cursor:pointer;user-select:none;
+    background:rgba(255,255,255,.95);border:1px solid var(--line);color:#57503f;
+    box-shadow:0 4px 14px rgba(28,26,23,.1);transition:background .2s,color .2s,opacity .2s}
+  .cap:hover{background:var(--ink);color:var(--paper)}
+  .cap.on{background:var(--cin);border-color:var(--cin);color:#fff}
+  .cap.flat{background:transparent;border-color:transparent;box-shadow:none;cursor:default;color:#8d8577}
+  .cap.flat:hover{background:transparent;color:#8d8577}
+  .cap.off{opacity:.35;cursor:not-allowed}
+  .cap.off:hover{background:rgba(255,255,255,.95);color:#57503f}
+
+  .legend{position:absolute;left:24px;bottom:24px;z-index:30;font-size:12px;color:#57503f;
+    background:rgba(245,239,227,.92);border-radius:8px;padding:10px 14px;line-height:1.95}
+  .legend b{color:var(--ink)} .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+
+  /* ============ 详情场景（推镜后进入） ============ */
+  .detailview{position:absolute;inset:0;z-index:45;display:none;background:#E7DFCB}
+  .dimg{position:absolute;inset:0;overflow:hidden}
+  .dmedia{position:absolute;inset:0;transform:scale(.9);opacity:0;
+    transition:transform .8s cubic-bezier(.2,.8,.25,1), opacity .8s ease}
+  .detailview.in .dmedia{transform:none;opacity:1}
+  .detailview.out .dmedia{transform:scale(1.1);opacity:0;transition:transform .45s ease, opacity .45s ease}
+  .detailview.fading .dmedia{transform:scale(.94);opacity:0;transition:transform .22s ease, opacity .22s ease}
+  .detailview.fading .sub{opacity:0;transition:opacity .18s ease}
+  .dmedia > img{width:100%;height:100%;object-fit:cover;display:block}
+  .dmedia > img.mapcrop{position:absolute;left:0;top:0;width:1536px;height:1024px;
+    object-fit:fill;transform-origin:0 0}
+  .dgrad{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(to top,rgba(28,26,23,.62) 0%,rgba(28,26,23,.18) 34%,rgba(28,26,23,0) 62%)}
+  .dtagbig{position:absolute;right:34px;top:132px;text-align:right;color:#fff;
+    font-size:34px;font-weight:700;letter-spacing:6px;text-shadow:0 4px 18px rgba(0,0,0,.5);opacity:0;
+    transform:translateY(14px);transition:opacity .6s ease .3s, transform .6s cubic-bezier(.2,.8,.25,1) .3s}
+  .detailview.in .dtagbig{opacity:1;transform:none}
+
+  /* 详情图上的可点击小标注点 */
+  .dsubs{position:absolute;inset:0;pointer-events:none}
+  .sub{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+    background:rgba(255,255,255,.92);border:2px solid var(--cin);color:var(--cin);
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+    cursor:pointer;pointer-events:auto;box-shadow:0 4px 14px rgba(28,26,23,.28);
+    transform:scale(0);transition:transform .35s cubic-bezier(.2,.8,.25,1) .45s, background .2s,color .2s}
+  .detailview.in .sub{transform:scale(1)}
+  .sub:hover,.sub.on{background:var(--cin);color:#fff}
+  .sub.vid{font-size:10px}                     /* 视频标注点用播放三角代替序号 */
+  .pop{position:absolute;z-index:48;max-width:250px;background:#fff;border-radius:10px;
+    padding:12px 14px;box-shadow:0 14px 36px rgba(28,26,23,.28);font-size:12px;line-height:1.8;
+    color:#57503f;opacity:0;transform:translateY(8px) scale(.96);pointer-events:none;
+    transition:opacity .22s ease, transform .22s cubic-bezier(.2,.8,.25,1)}
+  .pop.show{opacity:1;transform:none;pointer-events:auto}   /* 必须恢复交互，否则视频无法点击播放 */
+  .pop b{display:block;font-size:13px;color:var(--cin);margin-bottom:4px;letter-spacing:1px}
+  .pop .x{position:absolute;right:8px;top:6px;color:#bbb;cursor:pointer;font-size:13px;z-index:2}
+  .pop.wide{max-width:330px}
+  /* 视频：点击画面即播放 / 暂停 */
+  .pop .pmedia .vbox{display:block;position:relative;width:100%;margin:8px 0 2px;border-radius:8px;
+    overflow:hidden;background:#111;cursor:pointer;box-shadow:0 6px 18px rgba(28,26,23,.22)}
+  .pop .pmedia video{display:block;width:100%;max-height:46vh;object-fit:contain;background:#111}
+  .pop .pmedia .pimg{display:block;width:100%;max-height:44vh;object-fit:cover;border-radius:8px;
+    margin:8px 0 2px;box-shadow:0 6px 18px rgba(28,26,23,.22);background:#F3E9D6}
+  .pop .pmedia .vplay{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;
+    border-radius:50%;background:rgba(28,26,23,.45);border:2px solid rgba(255,255,255,.92);
+    pointer-events:none;transition:opacity .2s ease}
+  .pop .pmedia .vplay::after{content:'';position:absolute;left:20px;top:15px;
+    border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent}
+  .pop .pmedia .vbox.playing .vplay{opacity:0}
+
+  /* 左下角详情卡片 */
+  .dcard{position:absolute;left:28px;bottom:28px;width:378px;z-index:47;background:rgba(255,255,255,.97);
+    border-radius:14px;padding:20px 22px 18px;box-shadow:0 18px 48px rgba(28,26,23,.3);
+    opacity:0;transform:translateY(26px);
+    transition:opacity .55s ease .28s, transform .55s cubic-bezier(.2,.8,.25,1) .28s}
+  .detailview.in .dcard{opacity:1;transform:none}
+  .detailview.out .dcard{opacity:0;transform:translateY(18px);transition:opacity .3s ease, transform .3s ease}
+  .dcard .close{position:absolute;top:10px;right:14px;border:none;background:none;font-size:18px;color:#999;cursor:pointer}
+  .dcard .cat{display:inline-block;font-size:11px;border-radius:4px;padding:3px 9px;margin-bottom:8px;letter-spacing:1px}
+  .dcard h3{font-size:21px;margin-bottom:3px;letter-spacing:1px}
+  .dcard .step{font-size:11px;color:#8d8577;margin-bottom:12px}
+  .dtabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .dtab{font-size:12px;padding:5px 13px;border-radius:16px;cursor:pointer;
+    background:var(--paper);color:#7a7260;border:1px solid transparent}
+  .dtab.on{background:var(--ink);color:var(--paper)}
+  .dbody{font-size:13px;line-height:1.9;color:#57503f;max-height:190px;overflow:auto}
+  .dbody img{width:100%;height:132px;object-fit:cover;border-radius:8px;margin-bottom:10px;
+    border:1px solid #E3D5B8}
+  .dcard .tip{margin-top:10px;font-size:12px;line-height:1.7;color:#8A4A2E;
+    background:#FBF1E6;border-left:3px solid var(--cin);padding:8px 10px;border-radius:0 6px 6px 0}
+  .dcard .acts{display:flex;gap:8px;margin-top:14px}
+  .dcard .acts .ab{flex:1;font-size:12px;padding:9px 0;border-radius:8px;cursor:pointer;
+    text-align:center;border:1px solid transparent;user-select:none}
+  .dcard .acts .audio{background:var(--ink);color:var(--paper)}
+  .dcard .acts .stamp{background:#fff;border-color:var(--cin);color:var(--cin)}
+  .dcard .acts .stamp.done{background:var(--cin);color:#fff}
+  .dcard .acts .ab.off{opacity:.45;cursor:not-allowed}
+  .dcard .tags{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+  .dcard .tags i{font-style:normal;font-size:11px;background:var(--paper);border-radius:4px;
+    padding:3px 8px;color:#7a7260}
+
+  /* ============ 会期时间轴 ============ */
+  #timebar{position:absolute;left:50%;transform:translateX(-50%);bottom:24px;z-index:33;width:min(720px,70vw);
+    background:rgba(28,26,23,.92);color:#F5EFE3;border-radius:12px;padding:12px 18px 16px;display:none}
+  #timebar.show{display:block}
+  #timebar .trow{display:flex;align-items:center;gap:14px}
+  #timebar .tt{font-size:12px;letter-spacing:1px;opacity:.85}
+  #timebar .day{font-size:14px;font-weight:600;color:#F0C36A;min-width:96px}
+  #timebar input[type=range]{flex:1;accent-color:#C99A2C}
+  #timebar .ev{font-size:11px;color:#F0C36A;min-width:110px;text-align:center}
+  #timebar .marks{display:flex;justify-content:space-between;font-size:11px;color:#C9BFA8;margin-top:7px;padding:0 6px}
+
+  /* ============ 缩略导航 / 打卡 ============ */
+  #tilebar{position:absolute;right:24px;bottom:24px;z-index:30;display:flex;gap:10px;align-items:flex-end}
+  .tile{background:rgba(245,239,227,.95);border-radius:10px;padding:10px 12px;font-size:11px;color:#57503f;
+    box-shadow:0 8px 24px rgba(28,26,23,.14);line-height:1.8}
+  .tile b{color:var(--cin);font-size:15px}
+  #mini{width:176px;height:118px;border-radius:6px;display:block;background:#E7DFCB;margin-bottom:5px}
+  #stampDots i{display:inline-block;width:9px;height:9px;border-radius:50%;border:1px solid #C9BFA8;margin-right:4px}
+  #stampDots i.on{background:var(--cin);border-color:var(--cin)}
+
+  /* ============ 民俗图鉴 ============ */
+  #atlas{position:absolute;inset:0;z-index:55;background:rgba(28,26,23,.45);display:none;
+    align-items:center;justify-content:center}
+  #atlas.show{display:flex}
+  #atlas .box{width:min(880px,92vw);max-height:82vh;background:var(--paper);border-radius:14px;padding:22px 26px;overflow:auto}
+  #atlas h2{font-size:17px;margin-bottom:12px;letter-spacing:2px}
+  #atlas .atabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  #atlas .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+  #atlas .item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
+  #atlas .item:hover{border-color:var(--cin);box-shadow:0 6px 16px rgba(28,26,23,.1)}
+  #atlas .item .k{font-size:10px;color:#fff;border-radius:4px;padding:2px 7px;display:inline-block;margin-bottom:6px}
+  #atlas .item .n{font-size:14px;font-weight:600}
+  #atlas .item .s{font-size:11px;color:#8d8577;margin-top:3px}
+
+  #stampFx{position:fixed;pointer-events:none;z-index:70;font-size:56px;color:var(--cin);opacity:0;
+    border:5px solid var(--cin);border-radius:14px;padding:8px 14px;font-weight:700;transform:rotate(-12deg)}
+
+  /* ============ 卷轴开场 ============ */
+  #intro{position:absolute;inset:0;z-index:60;overflow:hidden}
+  #intro .panel{position:absolute;top:0;bottom:0;width:50.4%;background:#F2E9D5;
+    box-shadow:0 0 60px rgba(28,26,23,.35)}
+  #intro .panel.left{left:0;border-right:1px solid #D8CBB0}
+  #intro .panel.right{right:0;border-left:1px solid #D8CBB0}
+  #intro .roller{position:absolute;top:-2%;bottom:-2%;width:22px;background:#8A4A2E;border-radius:9px;
+    box-shadow:inset 3px 0 0 #6E3820,inset -3px 0 0 #6E3820}
+  #intro .left .roller{right:-8px} #intro .right .roller{left:-8px}
+  #intro .roller::before,#intro .roller::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
+    width:34px;height:12px;background:#5E2015;border-radius:5px}
+  #intro .roller::before{top:-6px} #intro .roller::after{bottom:-6px}
+  #intro .ititle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:18px}
+  #intro h1{font-size:52px;letter-spacing:16px;color:var(--ink);font-weight:700;text-indent:16px}
+  #intro .isub{font-size:15px;letter-spacing:8px;color:#8A4A2E;text-indent:8px}
+  #intro .seal{width:64px;height:64px;border:3px solid var(--cin);color:var(--cin);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1.2;text-align:center;
+    transform:rotate(-4deg);font-weight:700}
+  #intro .skip{margin-top:10px;font-size:14px;padding:10px 26px;border-radius:8px;
+    border:1px solid rgba(28,26,23,.3);background:#fff;cursor:pointer;color:var(--ink);letter-spacing:2px}
+  #intro .skip:hover{background:var(--cin);color:#fff;border-color:var(--cin)}
+  #intro.go .panel{transition:transform 1.5s cubic-bezier(.7,0,.3,1)}
+  #intro.go .panel.left{transform:translateX(-102%)} #intro.go .panel.right{transform:translateX(102%)}
+  #intro.go .ititle{transition:opacity .5s;opacity:0}
+
+  /* ============ 校准面板 ============ */
+  #calbox{position:absolute;left:24px;top:124px;width:272px;z-index:36;background:#fff;border-radius:10px;
+    padding:14px 16px;box-shadow:0 10px 30px rgba(28,26,23,.16);font-size:12px;display:none}
+  #calbox.show{display:block}
+  #calbox select{width:100%;padding:6px;margin:8px 0;font-size:12px}
+  #calbox textarea{width:100%;height:110px;font-size:11px;font-family:Consolas,monospace;margin-top:8px;
+    border:1px solid #ddd;border-radius:6px;padding:6px}
+  #calbox .hint{color:#8d8577;line-height:1.7}
+.site-home-link{position:fixed;right:16px;top:116px;z-index:100;display:flex;align-items:center;min-height:44px;padding:0 15px;border:1px solid #c9beaa;border-radius:6px;background:#f5efe3;color:#574735;text-decoration:none;font:12px Microsoft YaHei,sans-serif;box-shadow:0 2px 10px #0001}.site-home-link:hover{background:#fff}.site-home-link:focus-visible{outline:2px solid #b33b24;outline-offset:3px}@media(max-width:600px){body:has(#detailview.in) .site-home-link{top:16px;right:12px}}</style>
+</head>
+<body><a class="site-home-link" href="./">← 返回网站首页</a>
+<div class="stage">
+
+  <!-- ===== 首页 · 地图 ===== -->
+  <div class="mapview" id="mapview">
+    <div class="scene" id="scene">
+      <div class="zoomwrap" id="zoomwrap">
+        <img class="mapimg" id="mapimg" alt="太昊陵庙会等距全景">
+        <svg class="veclayer" id="veclayer" viewBox="0 0 1536 1024" preserveAspectRatio="none">
+          <defs><filter id="hblur" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="34"/></filter></defs>
+          <g id="heat" visibility="hidden"></g>
+          <path id="trail" visibility="hidden"></path>
+          <circle id="pilgrim" r="11" visibility="hidden"></circle>
+        </svg>
+        <div class="hotlayer" id="hotlayer"></div>
+      </div>
+    </div>
+
+    <div class="topbar">
+      <div class="row1">
+        <div class="brand">太昊陵<em>祭祖庙会</em>· 羲皇故都朝祖会</div>
+        <div class="sub">漫游 / 进香巡游 / 会期时间轴 · 点击光点走进场景</div>
+        <div class="actions">
+          <button class="btn" id="btnTrail">显示巡游路线</button>
+          <button class="btn" id="btnCal">校准点位</button>
+          <button class="btn" id="btnReset">复位</button>
+          <button class="btn primary" id="btnTour">▶ 开始进香巡游</button>
+        </div>
+      </div>
+      <div class="row2">
+        <span class="chip on" data-mode="roam">漫游</span>
+        <span class="chip" data-mode="tour">进香巡游</span>
+        <span class="chip" data-mode="timeline">会期时间轴</span>
+        <span class="sep"></span>
+        <span class="chip lay on" data-layer="bld"><i style="background:#B33B24"></i>建筑层</span>
+        <span class="chip lay on" data-layer="folk"><i style="background:#C99A2C"></i>民俗层</span>
+        <span class="chip lay" data-layer="heat"><i style="background:#D85A30"></i>人流热度层</span>
+        <span class="sep"></span>
+        <button class="btn" id="btnAtlas">民俗图鉴</button>
+        <input id="search" placeholder="搜索点位…" autocomplete="off">
+      </div>
+      <div id="sugg"></div>
+    </div>
+
+    <div class="capsbar" id="capsbar"></div>
+
+    <div class="legend">
+      <b>拖拽</b> 平移 · <b>滚轮</b> 缩放 · <b>点击光点</b> 走近看民俗<br>
+      <i style="background:#B33B24"></i>中轴线　<i style="background:#3E7C6F"></i>东片区　<i style="background:#3D6B8C"></i>西片区　<i style="background:#C99A2C"></i>全域民俗
+    </div>
+
+    <div id="calbox">
+      <b>校准模式</b>
+      <div class="hint">① 选择点位 → ② 在底图上点击正确位置 → ③ 光点即时移动，坐标追加到下方，可整段复制回代码里的 POIS。</div>
+      <select id="calSel"></select>
+      <textarea id="calOut" readonly></textarea>
+    </div>
+
+    <div id="tilebar">
+      <div class="tile">
+        <svg id="mini" viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet">
+          <image id="miniImg" x="0" y="0" width="1536" height="1024" preserveAspectRatio="xMidYMid meet"/>
+          <rect id="miniRect" x="0" y="0" width="1536" height="1024" fill="rgba(179,59,36,.18)" stroke="#B33B24" stroke-width="6"/>
+        </svg>
+        <div>缩略导航 · 红框为当前视野</div>
+      </div>
+      <div class="tile">
+        <div>进香盖印 <b id="stampN">0</b>/9</div>
+        <div id="stampDots"></div>
+        <div id="stampReset" style="cursor:pointer;color:#8d8577;text-decoration:underline">重置</div>
+      </div>
+    </div>
+
+    <div id="timebar">
+      <div class="trow">
+        <span class="tt">会期</span>
+        <span class="day" id="tbDay">二月初二</span>
+        <input type="range" id="tbRange" min="0" max="31" value="0">
+        <button class="btn" id="tbPlay">▶</button>
+        <span class="ev" id="tbEv">公祭大典 · 钟鼓九响</span>
+      </div>
+      <div class="marks"><span>二月初二</span><span>二月十五</span><span>三月初三</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 详情场景 ===== -->
+  <div class="detailview" id="detailview">
+    <div class="dimg" id="dimg">
+      <div class="dmedia" id="dmedia"></div>
+      <div class="dsubs" id="dsubs"></div>
+      <div class="dgrad"></div>
+      <div class="dtagbig" id="dtagbig"></div>
+    </div>
+
+    <div class="dcard" id="dcard">
+      <button class="close" id="dcardClose">✕</button>
+      <span class="cat" id="dcardCat"></span>
+      <h3 id="dcardTitle"></h3>
+      <div class="step" id="dcardStep"></div>
+      <div class="dtabs" id="dcardTabs"></div>
+      <div class="dbody" id="dcardBody"></div>
+      <div class="acts">
+        <div class="ab audio" id="dAudioBtn">▷ 听民俗音频</div>
+        <div class="ab stamp" id="dStampBtn">在此进香 · 盖香印</div>
+      </div>
+      <div class="tags" id="dcardTags"></div>
+    </div>
+
+    <div class="pop" id="pop"><span class="x" id="popX">✕</span><b></b><span class="pmedia"></span><span class="txt"></span></div>
+  </div>
+
+  <div id="atlas">
+    <div class="box">
+      <h2>民俗图鉴 · 全部点位</h2>
+      <div class="atabs" id="atlasTabs"></div>
+      <div class="grid" id="atlasGrid"></div>
+    </div>
+  </div>
+
+  <div id="stampFx">进香</div>
+
+  <div id="intro">
+    <div class="panel left"><div class="roller"></div></div>
+    <div class="panel right"><div class="roller"></div></div>
+    <div class="ititle">
+      <h1>太昊陵庙会</h1>
+      <div class="isub">进 香 巡 游 图 · 二月二 至 三月三</div>
+      <div class="seal">人祖<br>福地</div>
+      <button class="skip" id="btnEnter">展 开 长 卷 →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>
+/* ================= 底图与版画插画 ================= */
+const MAP_SRC = 'assets/img/001.jpg';
+/* 共享图片常量：多处引用同一张图，避免 base64 重复内嵌 */
+const IMG_BL = 'assets/img/002.jpg';
+const IMG_BAGUA = 'assets/img/003.jpg';
+const IMG_BL2 = 'assets/img/004.jpg';
+const IMG_BAGUA2 = 'assets/img/003.jpg';
+const IMG_LONGYUAN = 'assets/img/005.jpg';
+const IMG_BL3 = 'assets/img/006.jpg';
+const IMG_YAMO2 = 'assets/img/007.jpg';   /* 碑林2.jpg（万姓宗祠 / 碑林 共用） */
+
+const ART = {
+  q3: 'assets/img/008.jpg',
+  q9: 'assets/img/009.jpg',
+  e1: 'assets/img/010.jpg',
+  e2: 'assets/img/011.jpg',
+  w2: IMG_BL2,
+  q2: 'assets/img/012.jpg',
+  q3b: 'assets/img/013.jpg',
+  q4: 'assets/img/014.jpg',
+  q5a: 'assets/img/015.jpg',
+  q5b: 'assets/img/016.jpg',
+  q6: 'assets/img/017.jpg',
+  q7: 'assets/img/018.jpg',
+  q8: 'assets/img/019.jpg',
+  q10: 'assets/img/020.jpg',
+  q1: 'assets/img/021.jpg',
+  f1: 'assets/img/022.jpg',   /* 担经挑巡游 */
+  f4: 'assets/img/023.jpg',
+  f2: 'assets/img/024.jpg',   /* 泥泥狗 · 布老虎 */
+  f3: 'assets/img/025.jpg'    /* 压缩馍 */
+
+  ,q1b: 'assets/img/026.jpg'
+  ,w3: IMG_BL2
+  ,e2b: IMG_BAGUA2
+  ,longyuan: IMG_LONGYUAN
+};
+const VIDEO_DJT = 'assets/video/001.mp4';
+const VIDEO_BLH = 'assets/video/002.mp4';
+const VIDEO_NNG = 'assets/video/003.mp4';
+const VW = 1536, VH = 1024;
+const CAT = {
+  axis:{color:'#B33B24',label:'中轴线'}, east:{color:'#3E7C6F',label:'东片区'},
+  west:{color:'#3D6B8C',label:'西片区'}, folk:{color:'#C99A2C',label:'全域民俗'}
+};
+const KIND = { q1:'建筑',q1b:'建筑',q2:'建筑',q3:'建筑',q3b:'建筑',q4:'非遗',q5a:'建筑',q5b:'建筑',q6:'建筑',q7:'建筑',q8:'建筑',
+               q9:'民俗',q10:'民俗',e1:'建筑',e2:'建筑',e2b:'建筑',w1:'建筑',w2:'建筑',w3:'建筑',f1:'非遗',f2:'非遗',f3:'美食',f4:'非遗',longyuan:'建筑' };
+const KC = { '建筑':'#3D6B8C','民俗':'#3E7C6F','非遗':'#B33B24','美食':'#C99A2C' };
+
+/* 全局状态（提前声明，供下方各模块初始化时安全引用） */
+let tourOn = false, touring = false, curDay = 0, lastMoved = 0;
+let stampSet = JSON.parse(localStorage.getItem('thaihao-stamps') || '{}');
+
+/* ================= 点位（px/py 为底图像素坐标，热点按百分比定位） ================= */
+const POIS = [
+  { id:'q1', cat:'axis', step:'第 1 站 · 最南端', name:'渡善桥', px:996, py:922, lx:-150, ly:-46,
+    desc:'横跨蔡河，景区最南端入口。香客抵达渡善桥，整理衣冠、摒除杂念、心怀向善，才算正式开启朝祖拜祖。旧时远道步行而来的香客，正是过桥之后才开始焚香跪拜。',
+    tip:'古礼制：古代皇家走中间主桥，文武官员走东西副桥；如今香客均可走中桥。', tags:['过桥净心','启拜起点'] },
+  { id:'q1b', cat:'axis', step:'第 1·2 站之间', name:'道仪门', px:980, py:864, lx:-100, ly:-44,
+    desc:'中轴线南端第一道门，门楣悬「道儀門」匾。旧时香客朝祖，过道仪门即整衣冠、肃仪容，循门入庙开启拜祖仪程。两侧门联书“迎清风抱明月而长终，望斗牛接飞仙以遨游”。',
+    tip:'', tags:['第一道门','整衣正冠','门联'] },
+  { id:'q2', cat:'axis', step:'第 2 站', name:'午朝门', px:962, py:802, lx:140, ly:-64,
+    desc:'外城第一道大门，正门为皇家规格的九九八十一颗大门钉。香客伸手触摸门钉，祈求家宅安宁、人丁兴旺、消灾解难。',
+    tip:'旧礼制：古代普通百姓不能走正中大门，只能走东西侧门，现代全部开放。', tags:['摸门钉','八十一钉','祈福'] },
+  { id:'q3', cat:'axis', step:'第 3 站', name:'玉带河 · 玉带桥', px:890, py:708, lx:130, ly:-44,
+    desc:'香客走过玉带桥，向玉带河水中投掷硬币，寓意洗去俗世烦恼、祈求福运到来、敬奉人祖。玉带河象征净心之水，过此河即进入神圣祭祀区。',
+    tip:'', tags:['投钱币','净心之水'] },
+  { id:'q3b', cat:'axis', step:'第 3·4 站之间', name:'先天门', px:871, py:681, lx:-138, ly:-56,
+    desc:'玉带桥与太极门之间的过街门楼，取伏羲画先天八卦之意。砖拱门洞古朴厚重，穿门而过即由外朝进入太极门广场，是中轴线上的重要界门。',
+    tip:'', tags:['先天八卦','过街门楼','中轴线'] },
+  { id:'q4', cat:'axis', step:'第 4 站', name:'太极门广场', px:853, py:655, lx:-168, ly:-30,
+    desc:'国家级非遗民俗舞蹈“担经挑（担花篮）”的主要表演场地。舞者多为中老年女性，着黑衣黑纱、肩担花篮，队形变化有“剪子股”“铁索链”“蛇蜕皮”，传女不传男，歌颂伏羲女娲抟土造人、繁衍人类的功绩。',
+    tip:'多在二月会期间于太极门广场、统天殿前广场表演；香客朝祖队伍举彩旗、唢呐伴奏到此祭拜。', tags:['担经挑','国家级非遗','传女不传男'] },
+  { id:'q5a', cat:'axis', step:'第 5 站 · 东侧', name:'东钟楼', px:1022, py:566, lx:104, ly:-42,
+    desc:'民间公祭大典时撞钟九响。九代表天之极数，以此致敬人文始祖伏羲，钟声通达天地，与西鼓楼击鼓九响相呼应，宣告祭祖大典正式开启。',
+    tip:'', tags:['撞钟九响','公祭大典','东侧'] },
+  { id:'q5b', cat:'axis', step:'第 5 站 · 西侧', name:'西鼓楼', px:784, py:552, lx:-118, ly:-48,
+    desc:'公祭大典时击鼓九响，与东钟楼撞钟九响对应成“九九”之数，极尽尊崇。平日晨钟暮鼓按时序敲响，为香客标注一天祭拜的节律。',
+    tip:'', tags:['击鼓九响','晨钟暮鼓','西侧'] },
+  { id:'q6', cat:'axis', step:'第 6 站 · 祭祀核心', name:'统天殿', px:912, py:606, lx:150, ly:24,
+    desc:'中轴线主大殿，整个陵区的祭祀核心。香客到此焚香，摆放糕点、水果、压缩馍等供品，跪拜伏羲，祈求国泰民安、阖家顺遂。大型官方公祭大典即在殿前月台举办。',
+    tip:'', tags:['敬献香供','公祭月台','中轴核心'] },
+  { id:'q7', cat:'axis', step:'第 7 站', name:'显仁殿', px:778, py:474, lx:136, ly:-48,
+    desc:'殿台东北角青石台基上有一处圆孔，称“子孙窑”，是六千多年前远古民俗的遗存。香客抚摸这个石头圆孔——顺时针摸祈男孩，逆时针摸祈女孩，祈求子孙绵延、家庭和睦。',
+    tip:'相传伏羲女娲制定嫁娶之礼，此石亦被视为远古婚配礼俗的遗存。', tags:['摸子孙窑','生殖崇拜','求子'] },
+  { id:'q8', cat:'axis', step:'第 8 站', name:'太始门 · 八卦坛', px:666, py:382, lx:-160, ly:-42,
+    desc:'香客到此稍作休整，面对伏羲陵方向祷告，为家人祈求平安顺遂。八卦坛上，香客按八卦方位绕行，感悟伏羲画八卦的功德。',
+    tip:'', tags:['祭拜祷告','绕八卦方位'] },
+  { id:'q9', cat:'axis', step:'第 9 站', name:'伏羲陵冢', px:553, py:150, lx:150, ly:-26,
+    desc:'人祖坟，中轴线终点。古老习俗“添坟土”：远道而来的香客从家乡带一把泥土撒在陵冢上，寓意不忘故土血脉。另一普遍习俗是“绕陵转拜”——沿陵冢外围步道顺时针绕行三圈，边走边祷告。',
+    tip:'文物保护提示：现已禁止往陵上抛洒泥土，改为焚香叩拜。', tags:['添坟土','绕陵三圈','还旗杆'] },
+  { id:'q10', cat:'axis', step:'第 10 站 · 终点', name:'蓍草园', px:438, py:112, lx:-130, ly:-30,
+    desc:'传说伏羲采蓍草推演先天八卦，古时香客采摘蓍草当作祈福灵物带回家，如今为保护古植物，不允许采摘，仅作观瞻祭拜。',
+    tip:'', tags:['采撷蓍草','古占卜','伏羲画卦'] },
+  { id:'e1', cat:'east', step:'东片区', name:'岳飞观', px:1168, py:650, lx:96, ly:-40,
+    desc:'殿内设秦桧等人跪像。民间习俗，香客拍打跪像，抒发惩恶扬善的朴素情感，祈求祛除奸邪祸祟。',
+    tip:'', tags:['拍打跪像','惩恶扬善'] },
+  { id:'e2', cat:'east', step:'东片区 · 东北角', name:'独秀园', px:786, py:122, lx:124, ly:-24,
+    desc:'松柏造型园艺园区，无祭祀类民俗。二月会期间大量百姓逛园游玩，观赏松柏剪扎造型，是香客祭拜之余歇脚、带孩子玩耍的场所。',
+    tip:'', tags:['休闲游玩','松柏造型','无祭祀活动'] },
+  { id:'e2b', cat:'east', step:'东片区 · 东北角', name:'八卦迷宫', px:742, py:86, lx:-116, ly:-30,
+    desc:'园内松柏剪扎排成八卦阵形，游人在阵中穿行迷趣，是庙会热门的休闲游玩点。无祭祀类民俗。',
+    tip:'', tags:['八卦阵形','穿行迷趣','休闲游玩'] },
+  { id:'longyuan', cat:'east', step:'东片区 · 东北角', name:'龙园', px:838, py:74, lx:-84, ly:-26,
+    desc:'园内步道盘旋如游龙，松柏环绕、绿意葱茏，寓意祥瑞。二月会期间香客祭拜之余常来此休闲游玩、拍照观景。无祭祀类民俗。',
+    tip:'', tags:['休闲游玩','龙形步道','无祭祀活动'] },
+  { id:'w1', cat:'west', step:'西片区', name:'女娲观', px:399, py:484, lx:-112, ly:-40,
+    desc:'独立院落供奉女娲娘娘。香客焚香祭拜，祈求家庭美满、子嗣安康，是妇女祈福的重要场所。',
+    tip:'', tags:['拜女娲','求子嗣','妇女祈福'] },
+  { id:'w2', cat:'west', step:'西片区', name:'万姓宗祠', px:322, py:308, lx:-124, ly:-32,
+    desc:'海内外游客到此查找自家姓氏来源，祭拜华夏共同人祖伏羲，感念万姓同根同源。',
+    tip:'', tags:['寻根认祖','万姓同源'] },
+  { id:'w3', cat:'west', step:'西片区', name:'碑林', px:296, py:232, lx:-118, ly:-40,
+    desc:'淮阳为羲皇故都，文化积淀极其丰厚，是华夏文明的重要发祥地。千百年来，历代帝王亲临致祭、御制祝文多达 71 次，文人骚客赋诗抒怀、翰墨铸情者灿若繁星。碑刻包括国家领导人题词，历代帝王、文化名人、当代书法名家手迹，以及古今歌颂伏羲功德的诗词、太昊陵保存的御祭碑等珍贵碑刻共 306 方。',
+    tip:'', tags:['306 方碑刻','御祭碑 71 次','书法手迹'] },
+  { id:'f1', cat:'folk', step:'全域民俗 · 动线', name:'担经挑巡游队伍', px:890, py:724, lx:120, ly:-30,
+    desc:'各地香客自发组织朝祖会队伍，举青龙彩旗、唢呐锣鼓开路、肩挑花篮，从渡善桥一路巡游，途经午朝门、太极门，一直走到伏羲陵。这条动线就是“进香巡游”的原型。',
+    tip:'', tags:['巡游动线','举旗唢呐','全域'] },
+  { id:'f2', cat:'folk', step:'全域民俗 · 集市', name:'淮阳泥泥狗', px:726, py:706, lx:-176, ly:-36,
+    desc:'又称“陵狗”或“灵狗”，是淮阳泥玩具的总称，产生于河南省周口市淮阳区，流布于太昊陵以东及东北的城关回族镇和白楼乡、大连乡的十几个村庄，距今已有数千年历史。作为太昊陵庙会的重要祭祀物，通过古老的宗教祭祀与民俗活动传承至今，承载着原始先民生殖崇拜、图腾崇拜等信仰观念。题材取材以狗为主，囊括鸟、兽、虫、鱼等数百种飞禽走兽，造型古朴浑厚、虚幻神秘，有原生型、互渗型、精灵型、现代型四种，抽象变形品种有九头鸟、人头狗、人面鱼、猴头燕、独角兽、猫拉猴等。',
+    tip:'制作流程：选土 → 捏塑 → 晾晒 → 煮染 → 上彩。上彩工具是高粱杆做的“杆笔”“挺笔”，先以白色画出基本轮廓（形色特征），再用红、黄、绿、粉红色，以点、线结构的图案加以彩绘。',
+    tags:['陵狗·灵狗','黑底彩绘','泥塑类国家级非遗'] },
+  { id:'f4', cat:'folk', step:'全域民俗 · 集市', name:'淮阳布老虎', px:812, py:764, lx:132, ly:28,
+    desc:'河南淮阳太昊陵庙会上的标志性民间手工艺品，寓意驱邪纳吉、生生不息，也是当地国家级非物质文化遗产的重要内容之一。最早与虎图腾崇拜有关，后来逐渐从图腾崇拜变成祈福避灾、保佑孩童平安的吉祥物。庙会里最常见：每年农历二月二到三月三的太昊伏羲陵庙会上，布老虎是最热门的纪念品，造型多样、颜色鲜艳。',
+    tip:'相传上古时期天塌地陷，人间只剩下伏羲女娲兄妹二人。为繁衍人类，他们各自去寻找配偶，遍寻第三人无果，便商定滚石为媒、合而成婚。伏羲因羞于见女娲，就扮成老虎模样以草遮面与她成婚，使华夏民族得以延续。先民们为表达对伏羲和女娲的怀念与敬仰，便制作布老虎以示纪念。',
+    tags:['驱邪纳吉','生生不息','虎图腾'] },
+  { id:'f3', cat:'folk', step:'全域民俗 · 小吃', name:'吃压缩馍', px:1075, py:747, lx:104, ly:-38,
+    desc:'庙会特色小吃，民谣：“压缩馍，压缩馍，小孩吃了考大学”。香客祭拜完人祖，买压缩馍带回家分给家人，寓意沾人祖福气。',
+    tip:'', tags:['民谣','沾福气','带回家'] }
+];
+const SEQ = POIS;   /* 上一站 / 下一站的序列 */
+
+/* 详情图上的小标注点（坐标为详情画面的百分比） */
+const SUBS = {
+  q1:[{x:18,y:62,t:'蔡河',d:'渡善桥横跨蔡河。旧时香客多在此整衣冠、静心神，怀恶念者不宜拜人祖。'},
+      {x:56,y:46,t:'桥面 · 过桥净心',d:'过桥即入陵区，心怀向善才算正式开启朝祖拜祖。'},
+      {x:50,y:12,t:'桥亭',d:'古制：皇家走中桥，文武官员分走东西副桥；如今香客均可走中桥。'}],
+  q1b:[{x:50,y:30,t:'「道儀門」匾',d:'道仪门为中轴线南端第一道门，过门即整衣冠、肃仪容，开启拜祖仪程。'},
+       {x:16,y:52,t:'门联',d:'“迎清风抱明月而长终，望斗牛接飞仙以遨游”。'},
+       {x:50,y:86,t:'雪中神道',d:'门洞内神道纵深，直通午朝门。'}],
+  q2:[{x:16,y:80,t:'九九八十一门钉',d:'正门皇家规格，金色门钉满布门扇；香客以手触摸，祈家宅安宁、人丁兴旺、消灾解难。'},
+      {x:50,y:80,t:'中门',d:'旧时百姓只走东西侧门，中门仅供皇家与钦差出入，现已全部开放。'},
+      {x:50,y:47,t:'「开天立极」匾',d:'“开天立极”颂伏羲开天辟地、立法作则之功；上悬“太昊陵”竖匾。'}],
+  q3:[{x:50,y:28,t:'投币祈福',d:'走过玉带桥向河心投掷硬币，取“舍财求福、洗去烦恼”之意。'},
+      {x:47,y:66,t:'净心之水',d:'玉带河为空间上的净心之界，过河即进入神圣祭祀区。'},
+      {x:14,y:46,t:'石狮望柱',d:'桥栏雕石狮望柱；古制皇家走中桥，文武官员分走东西副桥。'}],
+  q3b:[{x:50,y:34,t:'「先天门」匾',d:'', img:'assets/img/027.jpg'},
+      {x:50,y:72,t:'门洞 · 望太极门',d:'', img:'assets/img/028.jpg'},
+      {x:85,y:24,t:'过街建筑',d:'先天门为过街门楼，取伏羲画先天八卦之意，穿门即入太极门广场。'}],
+  q4:[{x:50,y:41,t:'担经挑表演',d:'黑衣黑纱、肩担花篮，队形有“剪子股”“铁索链”“蛇蜕皮”，在太极门前广场表演。'},
+      {x:50,y:66,t:'朝祖队伍',d:'举青龙彩旗、唢呐锣鼓开路，到此祭拜后再往统天殿。'}],
+  q5a:[{x:27,y:42,t:'「钟楼」匾',d:'公祭大典撞钟九响，九为天之极数，致敬人文始祖。'},
+      {x:64,y:40,t:'檐角惊鸟铃',d:'风过铃动，钟楼檐角与鼓楼遥遥相望，成“九九”之数。'},
+      {x:72,y:72,t:'「伏羲臺人祖庙」铜钟',d:'庙内古钟铭“伏羲臺人祖庙”，公祭大典撞钟九响即源于此。',img:'assets/img/029.jpg'}],
+  q5b:[{x:50,y:43,t:'「鼓楼」匾',d:'公祭大典击鼓九响，与东钟楼相应成“九九”之数。'},
+      {x:50,y:66,t:'晨钟暮鼓',d:'平日晨钟暮鼓按时序敲响，为香客标注一天祭拜的节律。'}],
+  q6:[{x:50,y:60,t:'敬献香供',d:'焚香、摆糕点水果与压缩馍为供，跪拜伏羲祈国泰民安、阖家顺遂。'},
+      {x:50,y:88,t:'殿前月台',d:'大型官方公祭大典于此月台举行，钟鼓齐鸣。'}],
+  q7:[{x:76,y:62,t:'子孙窑',d:'殿东北角青石台基上的圆孔，六千多年前远古民俗遗存。'},
+      {x:76,y:76,t:'顺逆之别',d:'顺时针摸祈男孩，逆时针摸祈女孩，皆求子孙绵延、家庭和睦。'},
+      {x:50,y:66,t:'婚配礼俗',d:'殿内奉伏羲圣像；相传伏羲女娲制嫁娶之礼，此殿亦被视为远古婚配礼俗的遗存。'}],
+  q8:[{x:50,y:30,t:'面向陵冢祷告',d:'穿过“太始门”门洞至此稍作休整，面朝伏羲陵方向为家人祈平安顺遂。'},
+      {x:50,y:62,t:'八卦坛 · 绕行',d:'门洞北望八卦坛，按八卦方位绕行，感悟伏羲画八卦的功德。'}],
+  q9:[{x:37,y:44,t:'添坟土',d:'旧俗：远道香客自带家乡土撒于陵上，寓不忘故土血脉。'},
+      {x:60,y:58,t:'绕陵三圈',d:'沿陵冢外围步道顺时针绕行三圈，边走边祷告，是最普遍的朝拜方式。'},
+      {x:76,y:32,t:'文物保护',d:'现已禁止抛洒泥土、攀爬陵体，改为焚香叩拜。'},
+      {x:20,y:20,t:'「耳柏」古树',d:'陵前千年古柏，树干上生有人耳状树瘤，民间称“耳柏”，传为人祖倾听子孙祈愿。',img:'assets/img/030.jpg'},
+      {x:18,y:76,t:'重修陵墓碑',d:'历代重修伏羲陵墓碑刻，盘龙碑首，记述历次修陵纪事。',img:'assets/img/031.jpg'},
+      {x:86,y:70,t:'陵区碑林',d:'历代祭祀碑刻林立、赑屃驮碑，是庙会千年香火的实证。',img:IMG_BL}],
+  q10:[{x:20,y:60,t:'「蓍草园」碑',d:'传说伏羲采蓍草推演先天八卦，古时香客采之带回家作祈福灵物。'},
+      {x:62,y:86,t:'祈福绸带 · 禁止采摘',d:'园栏系满祈福绸带；今为保护古植物不允许采摘，仅作观瞻祭拜。'}],
+  e1:[{x:46,y:50,t:'秦桧跪像',d:'殿前秦桧等五人铁跪像，香客拍打以抒惩恶扬善之情。'},
+      {x:72,y:56,t:'祛除奸邪',d:'民间以为拍打跪像可祛除奸邪祸祟，求得一身清正。'}],
+  e2:[{x:44,y:66,t:'休闲游玩',d:'无祭祀类民俗，二月会期间百姓多在此逛园歇脚、观赏松柏剪扎造型。'},
+      {x:70,y:30,t:'松柏造型园',d:'园内松柏经剪扎成各种造型，是北方少见的植物造型艺术园。'}],
+  e2b:[{x:50,y:62,t:'阵中穿行',d:'柏枝排成八卦阵形，游人入阵穿行，迷趣横生。'},
+       {x:50,y:22,t:'八卦阵俯瞰',d:'自高处俯瞰，松柏八卦阵形尽收眼底。',img:IMG_BAGUA}],
+  w1:[{x:41,y:46,t:'祭拜女娲',d:'独立院落供奉女娲娘娘，焚香祈求家庭美满、子嗣安康。'},
+      {x:62,y:58,t:'妇女祈福',d:'庙会中妇女祈福的重要场所，与显仁殿子孙窑一脉相承。'}],
+  w2:[{x:50,y:38,t:'寻根认祖',d:'海内外游客到此查找自家姓氏来源，祭拜华夏共同人祖伏羲。'},
+      {x:26,y:60,t:'万姓同源',d:'碑廊环列，感念万姓同根同源，是庙会“寻根”主题的核心场所。'}],
+  w3:[{x:30,y:26,t:'历代帝王御祭',d:'千百年来历代帝王亲临致祭、御制祝文多达 71 次，御祭碑为太昊陵所存珍贵碑刻。'},
+      {x:58,y:55,t:'御祭碑 · 赑屃驮碑',d:'历代御祭碑多以赑屃驮负，铭刻帝王祭祀人祖的祝文。',img:IMG_BL},
+      {x:74,y:74,t:'306 方碑刻',d:'国家领导人题词、历代帝王与文化名人手迹、当代书法名家墨宝，及歌颂伏羲功德的诗词碑刻共 306 方。',img:IMG_BL3}],
+  f1:[{x:33,y:40,t:'举旗 · 唢呐开路',d:'青龙彩旗先导，唢呐锣鼓开道，队伍从渡善桥一路巡游至伏羲陵。'},
+      {x:57,y:52,t:'肩挑花篮',d:'花篮象征供奉，舞步与队形变化皆为颂扬伏羲女娲抟土造人。'},
+      {x:76,y:30,t:'传女不传男',d:'国家级非遗民俗舞蹈，舞者多为中老年女性。'},
+      {x:50,y:14,t:'担经挑短片',d:'', v:VIDEO_DJT}],   /* d 留空：视频下方不出现文字解说 */
+  f2:[{x:30,y:38,t:'捏塑 · 造型',d:'题材以狗为主，囊括鸟兽虫鱼数百种；有原生型、互渗型、精灵型、现代型四类，造型古朴怪诞、构思奇特。'},
+      {x:56,y:52,t:'黑底 · 上彩',d:'煮染成黑底，高粱杆“杆笔”先以白色勾出轮廓，再用红、黄、绿、粉红以点线结构彩绘。'},
+      {x:79,y:29,t:'泥泥狗制作短片',d:'', v:VIDEO_NNG}],   /* d 留空：视频下方不出现文字解说 */
+  f4:[{x:31,y:39,t:'从图腾到吉祥物',d:'最早与虎图腾崇拜有关，后演变为祈福避灾、保佑孩童平安的吉祥物，寓意驱邪纳吉、生生不息。'},
+      {x:58,y:54,t:'六七道工序',d:'裁剪、造型、填充、绘画等六七道工序、几十个步骤，既考验细致程度，也极需创作功力。'},
+      {x:79,y:72,t:'单头虎 · 双头虎',d:'现有单头虎、双头虎、直卧虎、侧卧虎、玩具虎、枕头虎等，形态各异、大小不一。'},
+      {x:82,y:20,t:'布老虎制作短片',d:'', v:VIDEO_BLH}],   /* d 留空：视频下方不出现文字解说 */
+  f3:[{x:39,y:44,t:'压缩馍',d:'庙会特色小吃，民谣：“压缩馍，压缩馍，小孩吃了考大学”。'},
+      {x:62,y:58,t:'沾人祖福气',d:'祭拜完人祖买压缩馍带回家分给家人，寓意沾得福气。',img:IMG_YAMO2}],
+  longyuan:[{x:50,y:46,t:'龙园俯瞰',d:'步道盘旋如游龙，松柏葱郁、绿意盎然。',img:IMG_LONGYUAN}]
+};
+
+/* 非遗页签的专属说明（无专属者回落到统一文案） */
+SUBS.HERITAGE = {
+  f2:'泥塑（淮阳泥泥狗）· <b>2014 年第四批</b>国家级非物质文化遗产。以社会传承和师带徒传承为主，通过口传身授世代相传；它凸显并强化了人类深层意识中的生殖崇拜、动物崇拜、祖先崇拜等观念，为历史学和人类学研究提供了生动案例。其与淮阳太昊陵庙会祭祖古俗相互印证、融合，用以缅怀祖先、祭祀人祖繁衍人类之功，具有艺术、社会和文化价值。',
+  f4:'淮阳布老虎 · 太昊陵庙会标志性民间手工艺品，寓意<b>驱邪纳吉、生生不息</b>，属当地国家级非物质文化遗产的重要内容之一。制作需经裁剪、造型、填充、绘画等六七道工序、几十个步骤，既考验制作者的细致程度，也极其需要创作功力。'
+};
+
+/* ================= 视图（平移 / 缩放 / 布局） ================= */
+const mapview = document.getElementById('mapview');
+const scene   = document.getElementById('scene');
+const wrap    = document.getElementById('zoomwrap');
+const hotlayer= document.getElementById('hotlayer');
+document.getElementById('mapimg').src = MAP_SRC;
+document.getElementById('miniImg').setAttribute('href', MAP_SRC);
+
+let view = { x: 0, y: 0, k: 1 }, S = 1, OX = 0, OY = 0;
+
+function layout() {
+  const cw = mapview.clientWidth, ch = mapview.clientHeight;
+  if (!cw || !ch) return;
+  const fit = Math.min(cw / VW, ch / VH);
+  const s = fit * view.k;
+  S = s;
+  OX = (cw - VW * s) / 2 + view.x;
+  OY = (ch - VH * s) / 2 + view.y;
+  wrap.style.transform = `translate(${OX}px,${OY}px) scale(${s})`;
+  const inv = 1 / s;                       /* 光点反向缩放，保持恒定尺寸 */
+  hotlayer.querySelectorAll('.hot').forEach(el => {
+    el.style.transform = `translate(-50%,-50%) scale(${inv})`;
+  });
+  const mr = document.getElementById('miniRect');
+  if (mr) {
+    mr.setAttribute('x', -OX / S); mr.setAttribute('y', -OY / S);
+    mr.setAttribute('width', cw / S); mr.setAttribute('height', ch / S);
+  }
+}
+const apply = layout;
+
+function toMap(cx, cy) {
+  const r = mapview.getBoundingClientRect();
+  return [(cx - r.left - OX) / S, (cy - r.top - OY) / S];
+}
+function targetFor(p, k) {
+  const cw = mapview.clientWidth, ch = mapview.clientHeight;
+  const fit = Math.min(cw / VW, ch / VH), s = fit * k;
+  return { x: cw / 2 - (cw - VW * s) / 2 - p.px * s,
+           y: ch / 2 - (ch - VH * s) / 2 - p.py * s, k };
+}
+function centerOn(p, k = 1.5, dur = 0.9) {
+  const t = targetFor(p, k);
+  return tween(view, { x: t.x, y: t.y, k: t.k, onUpdate: apply }, dur, 'power2.inOut');
+}
+
+mapview.addEventListener('wheel', e => {
+  e.preventDefault();
+  const [u, v] = toMap(e.clientX, e.clientY);
+  const r = mapview.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  view.k = Math.min(3.2, Math.max(0.7, view.k * (e.deltaY < 0 ? 1.12 : 0.89)));
+  layout();
+  view.x += mx - (OX + u * S);
+  view.y += my - (OY + v * S);
+  layout();
+}, { passive: false });
+
+let drag = null;
+mapview.addEventListener('pointerdown', e => {
+  if (e.target.closest('.topbar') || e.target.closest('#tilebar') || e.target.closest('#timebar') ||
+      e.target.closest('#calbox') || e.target.closest('.capsbar')) return;
+  drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: 0 };
+});
+window.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  drag.moved = Math.max(drag.moved, Math.abs(dx) + Math.abs(dy));
+  view.x = drag.vx + dx; view.y = drag.vy + dy; apply();
+});
+window.addEventListener('pointerup', () => { if (drag) lastMoved = drag.moved; drag = null; });
+document.getElementById('btnReset').onclick = () => {
+  view = { x: 0, y: 0, k: 1 }; apply(); closeDetail();
+};
+
+/* ================= 呼吸光点（百分比定位） ================= */
+function renderHotspots() {
+  hotlayer.innerHTML = POIS.map((p, i) => {
+    const c = CAT[p.cat].color;
+    return `<div class="hot" id="hot-${p.id}" data-id="${p.id}" data-cat="${p.cat}"
+        style="left:${(p.px / VW * 100).toFixed(3)}%;top:${(p.py / VH * 100).toFixed(3)}%;
+               --c:${c};--lx:${(p.lx*0.62).toFixed(0)}px;--ly:${(p.ly*0.62).toFixed(0)}px;animation-delay:${(0.9 + i * 0.06).toFixed(2)}s">
+      <span class="ring"></span><span class="ring ring2"></span>
+      <span class="dot"></span>
+      <span class="lab">${p.name}</span>
+    </div>`;
+  }).join('');
+  hotlayer.querySelectorAll('.hot').forEach(el => {
+    const p = POIS.find(q => q.id === el.dataset.id);
+    el.addEventListener('click', ev => { ev.stopPropagation(); if (lastMoved > 6) return; openDetail(p); });
+  });
+  layout(); syncStamps(); applyLayers();
+}
+/* 注意：renderHotspots() 在文件末尾统一调用（依赖下方图层/时间轴/盖印模块） */
+
+/* ================= 图层：建筑层 / 民俗层 / 人流热度层 ================= */
+const LAYERS = { bld: true, folk: true, heat: false };
+const heatG = document.getElementById('heat');
+const HEAT = [
+  [912, 606, 190, 1.0],[853, 655, 150, .9],[962, 802, 150, .85],[996, 922, 130, .8],
+  [770, 722, 130, .75],[1075, 747, 110, .7],[778, 474, 130, .8],[553, 150, 150, .85],[786, 122, 120, .5]
+];
+heatG.innerHTML = HEAT.map(([x, y, r, w]) =>
+  `<ellipse data-w="${w}" cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.62}" fill="#D85A30" filter="url(#hblur)"/>`).join('');
+
+function applyLayers() {
+  document.querySelectorAll('.hot').forEach(el => {
+    const c = el.dataset.cat;
+    const on = (c === 'folk') ? LAYERS.folk : LAYERS.bld;
+    el.classList.toggle('hide', !on);
+  });
+  heatG.setAttribute('visibility', LAYERS.heat ? 'visible' : 'hidden');
+  document.getElementById('trail').setAttribute('visibility',
+    (tourOn ? 'visible' : 'hidden'));
+  refreshHeat();
+}
+function refreshHeat() {
+  const v = heatI(curDay);
+  heatG.querySelectorAll('ellipse').forEach(el =>
+    el.setAttribute('opacity', (0.08 + 0.40 * v * (+el.dataset.w)) * (LAYERS.heat ? 1 : 0)));
+}
+document.querySelectorAll('.chip.lay').forEach(ch => ch.addEventListener('click', () => {
+  const k = ch.dataset.layer;
+  LAYERS[k] = !LAYERS[k];
+  ch.classList.toggle('on', LAYERS[k]);
+  applyLayers();
+}));
+
+/* ================= 会期时间轴（农历二月初二 — 三月初三） ================= */
+function numCN(n){const A=['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];return A[n]||n;}
+const dayName = d => d <= 28 ? '二月' + numCN(d + 2) : '三月初' + numCN(d - 28);
+function heatI(d){
+  let v = Math.max(0.28, 0.62 - d * 0.012);
+  if (d === 0) v = 0.85;
+  if (d >= 11 && d <= 15) v = Math.max(v, 1);
+  if (d === 31) v = Math.max(v, 0.5);
+  return v;
+}
+const EVENTS = { 0:'公祭大典 · 钟鼓九响', 13:'十五 · 人流最高峰', 31:'三月初三 · 收会' };
+function setDay(d){
+  curDay = d;
+  document.getElementById('tbDay').textContent = dayName(d);
+  document.getElementById('tbEv').textContent = EVENTS[d] || '· · ·';
+  document.getElementById('tbRange').value = d;
+  refreshHeat();
+}
+document.getElementById('tbRange').addEventListener('input', e => setDay(+e.target.value));
+setDay(0);
+let tlPlaying = false;
+document.getElementById('tbPlay').onclick = async function(){
+  if (tlPlaying) return; tlPlaying = true;
+  for (let d = (curDay + 1) % 32; ; d = (d + 1) % 32) {
+    setDay(d);
+    if (d === 0) break;
+    await wait(d === 13 || d === 31 ? 1400 : 380);
+  }
+  tlPlaying = false;
+};
+
+/* ================= 巡游路线 ================= */
+const AXIS = POIS.filter(p => p.cat === 'axis');
+const trail = document.getElementById('trail');
+trail.setAttribute('d', AXIS.map((p, i) => `${i ? 'L' : 'M'} ${p.px} ${p.py}`).join(' '));
+document.getElementById('btnTrail').onclick = function(){
+  tourOn = !tourOn;
+  trail.setAttribute('visibility', tourOn ? 'visible' : 'hidden');
+  this.textContent = tourOn ? '隐藏巡游路线' : '显示巡游路线';
+};
+
+/* ================= 详情场景：推镜进入 / 回退 ================= */
+const detailview = document.getElementById('detailview');
+const dmedia = document.getElementById('dmedia');
+const dsubs  = document.getElementById('dsubs');
+const pop    = document.getElementById('pop');
+const state  = { level:'map', cur:null };
+
+function fillMedia(p){
+  if (ART[p.id]) {
+    dmedia.innerHTML = `<img src="${ART[p.id]}" alt="${p.name}">`;
+  } else {                                   /* 无版画素材：用底图放大到该点位 = 真实“走近” */
+    dmedia.innerHTML = `<img class="mapcrop" id="mapcrop" src="${MAP_SRC}" alt="${p.name}">`;
+    layoutDetail();
+  }
+}
+function layoutDetail(){
+  const el = document.getElementById('mapcrop'); if (!el || !state.cur) return;
+  const box = dmedia.getBoundingClientRect(); if (!box.width) return;
+  const z = 2.3;
+  el.style.transform =
+    `translate(${box.width/2 - state.cur.px*z}px,${box.height/2 - state.cur.py*z}px) scale(${z})`;
+}
+/* 视频：data URI → Blob URL（懒加载；比直接塞 data URI 兼容性更好，也更省内存） */
+/* 按视频源分别缓存，多个视频互不串用 */
+const _vurls = new Map();
+function videoUrl(src){
+  if (/^https?:|^assets\/|^\.\/|^\//.test(src)) return src;   /* 拆分版：直接用相对/绝对地址 */
+  if (_vurls.has(src)) return _vurls.get(src);
+  const bin = atob(src.split(',')[1]);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  const u = URL.createObjectURL(new Blob([arr], { type: 'video/mp4' }));
+  _vurls.set(src, u);
+  return u;
+}
+/* 安全播放：老版浏览器 play() 返回 undefined 而非 Promise，直接 .catch() 会抛错 */
+function safePlay(v){
+  try { const r = v.play(); if (r && typeof r.catch === 'function') r.catch(() => {}); }
+  catch (e) {}
+}
+function fillSubs(p){
+  dsubs.innerHTML = (SUBS[p.id] || []).map((s, i) =>
+    `<span class="sub ${s.v ? 'vid' : ''}" data-i="${i}" style="left:${s.x}%;top:${s.y}%">` +
+    `${(s.v || s.img) ? '▶' : i + 1}</span>`).join('');
+  dsubs.querySelectorAll('.sub').forEach(el => el.addEventListener('click', ev => {
+    ev.stopPropagation();
+    const s = SUBS[p.id][+el.dataset.i];
+    dsubs.querySelectorAll('.sub').forEach(x => x.classList.remove('on'));
+    el.classList.add('on');
+    pop.querySelector('b').textContent = s.t;
+    const pt = pop.querySelector('.txt');
+    pt.textContent = s.d; pt.style.display = s.d ? '' : 'none';
+    const pm = pop.querySelector('.pmedia');
+    const isMedia = !!(s.v || s.img);
+    if (s.v) {                                   /* 视频栏：只显示画面，不附文字解说 */
+      pm.innerHTML = `<span class="vbox"><video playsinline preload="auto"></video><i class="vplay"></i></span>`;
+      const vv = pm.querySelector('video'), vb = pm.querySelector('.vbox');
+      vv.src = videoUrl(s.v);
+      vb.addEventListener('click', () => { vv.paused ? safePlay(vv) : vv.pause(); });
+      vv.addEventListener('play',  () => vb.classList.add('playing'));
+      vv.addEventListener('pause', () => vb.classList.remove('playing'));
+      vv.addEventListener('ended', () => vb.classList.remove('playing'));
+      safePlay(vv);                              /* 若被浏览器拦截，点击画面即可播放 */
+    } else if (s.img) {                          /* 图片浮层：图 + 可选短说明 */
+      pm.innerHTML = `<img class="pimg" src="${s.img}" alt="">`;
+    } else pm.innerHTML = '';
+    pop.classList.toggle('wide', isMedia);
+    pop.classList.add('show');
+    const r = el.getBoundingClientRect();
+    const pw = isMedia ? 330 : 250;
+    let lx = r.right + 14, ly = r.top - 6;
+    if (lx + pw > window.innerWidth - 16) lx = r.left - pw - 14;
+    ly = Math.max(120, Math.min(ly, window.innerHeight - (s.v ? 390 : (s.img ? 330 : 150))));
+    pop.style.left = lx + 'px'; pop.style.top = ly + 'px';
+  }));
+}
+function hidePop(){
+  const v = pop.querySelector('video'); if (v) { try { v.pause(); } catch (e) {} }
+  pop.classList.remove('show');
+  dsubs.querySelectorAll('.sub').forEach(x=>x.classList.remove('on'));
+  setTimeout(() => { const m = pop.querySelector('.pmedia'); if (m && !pop.classList.contains('show')) m.innerHTML = ''; }, 260);
+}
+document.getElementById('popX').onclick = hidePop;
+
+let cardTab = '习俗';
+function fillCard(p){
+  const c = CAT[p.cat].color, cat = document.getElementById('dcardCat');
+  cat.textContent = CAT[p.cat].label; cat.style.color = c; cat.style.border = '1px solid ' + c;
+  document.getElementById('dcardTitle').textContent = p.name;
+  document.getElementById('dcardStep').textContent = p.step;
+  document.getElementById('dcardTags').innerHTML = p.tags.map(t => `<i>${t}</i>`).join('');
+  const tabs = ['习俗','非遗','提示'];
+  document.getElementById('dcardTabs').innerHTML =
+    tabs.map(t => `<span class="dtab ${cardTab===t?'on':''}" data-t="${t}">${t}</span>`).join('');
+  const heritage = (SUBS.HERITAGE && SUBS.HERITAGE[p.id]) ||
+    '属「太昊伏羲祭典」组成部分 —— 2006 年首批国家级非物质文化遗产。';
+  const body = document.getElementById('dcardBody');
+  if (cardTab === '习俗')      body.innerHTML = p.desc;
+  else if (cardTab === '非遗') body.innerHTML = (ART[p.id] ? `<img src="${ART[p.id]}" alt="${p.name}">` : '') + heritage;
+  else                         body.innerHTML = p.tip
+      ? `<div class="tip">${p.tip}</div>`
+      : '按现行管理规范文明进香，遵守景区文物保护规定。';
+  document.getElementById('dcardTabs').querySelectorAll('.dtab').forEach(t =>
+    t.addEventListener('click', () => { cardTab = t.dataset.t; fillCard(p); }));
+  refreshStampBtn();
+}
+document.getElementById('dcardClose').onclick = () => closeDetail();
+
+function highlight(p) {
+  document.querySelectorAll('.hot').forEach(el =>
+    el.classList.toggle('active', el.dataset.id === p.id));
+}
+function openDetail(p) {
+  if (state.level === 'detail') return swapDetail(p);
+  state.level = 'detail'; state.cur = p; cardTab = '习俗';
+  const sx = OX + p.px * S, sy = OY + p.py * S;
+  scene.style.transformOrigin = `${sx}px ${sy}px`;   /* 以该点位为轴心推镜 */
+  mapview.classList.add('pushing');
+  fillMedia(p); fillSubs(p); fillCard(p); highlight(p);
+  document.getElementById('dtagbig').textContent = p.name;
+  detailview.style.display = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    detailview.classList.add('in');
+    layoutDetail();
+  }));
+  renderCaps();
+  return wait(560);
+}
+async function swapDetail(p) {
+  state.cur = p; cardTab = '习俗'; hidePop();
+  detailview.classList.add('fading');
+  await wait(230);
+  fillMedia(p); fillSubs(p); fillCard(p); highlight(p);
+  document.getElementById('dtagbig').textContent = p.name;
+  detailview.classList.remove('fading');
+  layoutDetail();
+  renderCaps();
+}
+function closeDetail() {
+  if (state.level !== 'detail') return;
+  hidePop();
+  detailview.classList.remove('in');
+  detailview.classList.add('out');
+  mapview.classList.remove('pushing');
+  setTimeout(() => {
+    detailview.classList.remove('out');
+    detailview.style.display = 'none';
+    state.level = 'map'; state.cur = null;
+    document.querySelectorAll('.hot').forEach(el => el.classList.remove('active'));
+    renderCaps();
+  }, 470);
+  document.getElementById('btnTrail').textContent = tourOn ? '隐藏巡游路线' : '显示巡游路线';
+}
+
+/* ================= 场景状态胶囊按钮 ================= */
+const capsbar = document.getElementById('capsbar');
+function renderCaps() {
+  const s = state; let h = '';
+  if (s.level === 'map') {
+    h += `<span class="cap on">⌂ 巡游地图</span>`;
+    h += `<span class="cap flat">共 ${POIS.length} 处点位 · 点击呼吸光点走近场景</span>`;
+  } else {
+    const i = SEQ.indexOf(s.cur);
+    h += `<span class="cap" data-act="home">‹ 返回地图</span>`;
+    h += `<span class="cap ${i > 0 ? '' : 'off'}" data-act="prev">‹ 上一站</span>`;
+    h += `<span class="cap on">${s.cur.step}</span>`;
+    h += `<span class="cap flat">${s.cur.name}</span>`;
+    h += `<span class="cap ${i < SEQ.length - 1 ? '' : 'off'}" data-act="next">下一站 ›</span>`;
+    if (touring) h += `<span class="cap on">巡游中…</span>`;
+  }
+  capsbar.innerHTML = h;
+}
+capsbar.addEventListener('click', e => {
+  const c = e.target.closest('.cap'); if (!c || c.classList.contains('off')) return;
+  const a = c.dataset.act;
+  if (a === 'home') { closeDetail(); }
+  if (a === 'prev') { const i = SEQ.indexOf(state.cur); if (i > 0) swapDetail(SEQ[i-1]); }
+  if (a === 'next') { const i = SEQ.indexOf(state.cur); if (i < SEQ.length-1) swapDetail(SEQ[i+1]); }
+});
+renderCaps();
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDetail();
+  if (state.level === 'detail' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    const i = SEQ.indexOf(state.cur);
+    const t = SEQ[i + (e.key === 'ArrowRight' ? 1 : -1)];
+    if (t) swapDetail(t);
+  }
+});
+
+/* ================= 民俗图鉴 ================= */
+const atlas = document.getElementById('atlas'), atlasGrid = document.getElementById('atlasGrid'), atlasTabs = document.getElementById('atlasTabs');
+let atlasTab = '全部';
+function renderAtlas(){
+  const tabs = ['全部','建筑','民俗','非遗','美食'];
+  atlasTabs.innerHTML = tabs.map(t => {
+    const n = t === '全部' ? POIS.length : POIS.filter(p => KIND[p.id] === t).length;
+    return `<span class="chip ${atlasTab===t?'on':''}" data-t="${t}">${t} ${n}</span>`;
+  }).join('');
+  atlasGrid.innerHTML = POIS.filter(p => atlasTab === '全部' || KIND[p.id] === atlasTab).map(p => `
+    <div class="item" data-id="${p.id}">
+      <span class="k" style="background:${KC[KIND[p.id]]}">${KIND[p.id]}</span>
+      <div class="n">${p.name}</div>
+      <div class="s">${p.step}</div>
+    </div>`).join('');
+}
+atlasTabs.addEventListener('click', e => {
+  const t = e.target.closest('[data-t]'); if (!t) return;
+  atlasTab = t.dataset.t; renderAtlas();
+});
+atlasGrid.addEventListener('click', e => {
+  const it = e.target.closest('[data-id]'); if (!it) return;
+  atlas.classList.remove('show');
+  const p = POIS.find(q => q.id === it.dataset.id);
+  centerOn(p, 1.5); openDetail(p);
+});
+document.getElementById('btnAtlas').onclick = () => { renderAtlas(); atlas.classList.add('show'); };
+atlas.addEventListener('click', e => { if (e.target === atlas) atlas.classList.remove('show'); });
+
+/* ================= 搜索 ================= */
+const sugg = document.getElementById('sugg'), searchBox = document.getElementById('search');
+searchBox.addEventListener('input', () => {
+  const q = searchBox.value.trim();
+  if (!q) { sugg.style.display = 'none'; return; }
+  const hits = POIS.filter(p => p.name.includes(q) || p.tags.some(t => t.includes(q)) || (KIND[p.id]||'').includes(q)).slice(0, 8);
+  sugg.innerHTML = hits.length
+    ? hits.map(p => `<div data-id="${p.id}"><b>${p.name}</b> · ${KIND[p.id]} <span style="color:#8d8577">${p.step}</span></div>`).join('')
+    : '<div style="color:#8d8577">未找到相关点位</div>';
+  sugg.style.display = 'block';
+});
+sugg.addEventListener('click', e => {
+  const d = e.target.closest('[data-id]'); if (!d) return;
+  sugg.style.display = 'none'; searchBox.value = '';
+  const p = POIS.find(q => q.id === d.dataset.id);
+  centerOn(p, 1.5); openDetail(p);
+});
+
+/* ================= 进香打卡 · 盖香印 ================= */
+const STAMPS = ['q1','q2','q3','q4','q6','q7','q8','q9','q10'];
+function updateStampUI(){
+  document.getElementById('stampN').textContent = Object.keys(stampSet).length;
+  document.getElementById('stampDots').innerHTML = STAMPS.map(id =>
+    `<i class="${stampSet[id]?'on':''}" title="${(POIS.find(p=>p.id===id)||{}).name||''}"></i>`).join('');
+}
+function syncStamps(){
+  document.querySelectorAll('.hot').forEach(el =>
+    el.classList.toggle('stamped', !!stampSet[el.dataset.id]));
+}
+function refreshStampBtn(){
+  const btn = document.getElementById('dStampBtn');
+  if (!state.cur) return;
+  if (!STAMPS.includes(state.cur.id)) { btn.classList.add('off'); btn.classList.remove('done'); btn.textContent = '此站无印'; }
+  else if (stampSet[state.cur.id])   { btn.classList.add('done'); btn.classList.remove('off'); btn.textContent = '已盖印 ✓'; }
+  else { btn.classList.remove('off','done'); btn.textContent = '在此进香 · 盖香印'; }
+}
+document.getElementById('dStampBtn').addEventListener('click', () => {
+  if (!state.cur || !STAMPS.includes(state.cur.id) || stampSet[state.cur.id]) return;
+  stampSet[state.cur.id] = dayName(curDay);
+  localStorage.setItem('thaihao-stamps', JSON.stringify(stampSet));
+  updateStampUI(); syncStamps(); refreshStampBtn();
+  const fx = document.getElementById('stampFx'), r = document.getElementById('dcard').getBoundingClientRect();
+  fx.style.left = (r.left + 30) + 'px'; fx.style.top = (r.top + 50) + 'px';
+  if (hasGsap) {
+    gsap.fromTo(fx, { opacity: 0, scale: 2.2 }, { opacity: .9, scale: 1, duration: .35, ease: 'power3.in' });
+    gsap.to(fx, { opacity: 0, duration: .6, delay: .9 });
+  } else {
+    fx.style.transition = 'none'; fx.style.opacity = .9;
+    setTimeout(() => { fx.style.transition = 'opacity .6s'; fx.style.opacity = 0; }, 900);
+  }
+});
+document.getElementById('stampReset').onclick = () => {
+  stampSet = {}; localStorage.removeItem('thaihao-stamps');
+  updateStampUI(); syncStamps(); refreshStampBtn();
+};
+updateStampUI();
+
+/* ================= 民俗音频（五声音阶示例，正式音频待录制） ================= */
+let actx = null;
+document.getElementById('dAudioBtn').addEventListener('click', function(){
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523.25, 587.33, 659.25, 783.99, 880, 659.25];
+    notes.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      const t = actx.currentTime + i * 0.3;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.65);
+    });
+    this.textContent = '♪ 播放中…';
+    setTimeout(() => this.textContent = '▷ 听民俗音频', 2200);
+  } catch(e){ this.textContent = '音频不可用'; }
+});
+
+/* ================= 动画工具（GSAP 优先，断网回退 rAF） ================= */
+const hasGsap = typeof window.gsap !== 'undefined';
+function tween(obj, props, dur, ease = 'power2.inOut'){
+  return new Promise(res => {
+    if (hasGsap) gsap.to(obj, { ...props, duration: dur, ease, onComplete: res });
+    else {
+      const keys = Object.keys(props).filter(k => k !== 'onUpdate'), from = {}, to = {};
+      keys.forEach(k => { from[k] = obj[k]; to[k] = props[k]; });
+      const t0 = performance.now();
+      (function step(t){
+        const e = Math.min(1, (t - t0) / (dur * 1000)), k = 1 - Math.pow(1 - e, 3);
+        keys.forEach(key => obj[key] = from[key] + (to[key] - from[key]) * k);
+        props.onUpdate && props.onUpdate();
+        e < 1 ? requestAnimationFrame(step) : res();
+      })(t0);
+    }
+  });
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* ================= 卷轴开场 ================= */
+const intro = document.getElementById('intro');
+let opened = false;
+async function openScroll(){
+  if (opened) return; opened = true;
+  setTimeout(() => hotlayer.classList.add('ready'), 420);   /* 卷轴展开时呼吸光点依次亮起 */
+  if (hasGsap) {
+    gsap.timeline()
+      .to('.ititle', { opacity: 0, duration: .45 })
+      .to('.panel.left',  { xPercent: -103, duration: 1.5, ease: 'power3.inOut' }, '<')
+      .to('.panel.right', { xPercent: 103, duration: 1.5, ease: 'power3.inOut' }, '<')
+      .add(() => intro.remove(), '-=.2');
+    view.k = 1.45; apply();
+    await tween(view, { k: 1, x: 0, y: 0, onUpdate: apply }, 1.8, 'power2.out');
+  } else {
+    intro.classList.add('go');
+    await wait(1500); intro.remove();
+    view.k = 1.45; apply();
+    await tween(view, { k: 1, x: 0, y: 0, onUpdate: apply }, 1.8);
+  }
+}
+document.getElementById('btnEnter').onclick = openScroll;
+setTimeout(() => { if (!opened) openScroll(); }, 6000);
+
+/* ================= 进香巡游（南 → 北，逐站推镜进入） ================= */
+const pilgrim = document.getElementById('pilgrim');
+document.getElementById('btnTour').onclick = async function(){
+  if (touring) return; touring = true; this.textContent = '巡游中…';
+  if (!tourOn) { tourOn = true; document.getElementById('btnTrail').textContent = '隐藏巡游路线'; }
+  trail.setAttribute('visibility', 'visible');
+  pilgrim.setAttribute('visibility', 'visible');
+  const pos = { x: AXIS[0].px, y: AXIS[0].py };
+  const paint = () => { pilgrim.setAttribute('cx', pos.x); pilgrim.setAttribute('cy', pos.y); };
+  paint();
+  for (const p of AXIS) {
+    await tween(pos, { x: p.px, y: p.py, onUpdate: paint }, 1.0, 'power1.inOut');
+    await centerOn(p, 1.6, 0.6);
+    await openDetail(p);
+    await wait(3400);
+    closeDetail();
+    await wait(520);
+  }
+  pilgrim.setAttribute('visibility', 'hidden');
+  touring = false; this.textContent = '▶ 开始进香巡游';
+  view = { x: 0, y: 0, k: 1 }; apply();
+};
+document.querySelectorAll('[data-mode]').forEach(ch => ch.addEventListener('click', () => {
+  document.querySelectorAll('[data-mode]').forEach(c => c.classList.remove('on'));
+  ch.classList.add('on');
+  const m = ch.dataset.mode;
+  document.getElementById('timebar').classList.toggle('show', m === 'timeline');
+  if (m === 'timeline') {
+    LAYERS.heat = true;
+    document.querySelector('[data-layer="heat"]').classList.add('on');
+    applyLayers();
+  }
+  if (m === 'tour' && !touring) document.getElementById('btnTour').click();
+}));
+
+/* ================= 校准模式（修正底图上的热点坐标） ================= */
+const calbox = document.getElementById('calbox'), calSel = document.getElementById('calSel'), calOut = document.getElementById('calOut');
+calSel.innerHTML = POIS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+document.getElementById('btnCal').onclick = function(){
+  calbox.classList.toggle('show');
+  this.textContent = calbox.classList.contains('show') ? '退出校准' : '校准点位';
+};
+mapview.addEventListener('click', e => {
+  if (!calbox.classList.contains('show')) return;
+  const [mx, my] = toMap(e.clientX, e.clientY);
+  const p = POIS.find(q => q.id === calSel.value); if (!p) return;
+  p.px = Math.round(mx); p.py = Math.round(my);
+  const el = document.getElementById('hot-' + p.id);
+  el.style.left = (p.px / VW * 100).toFixed(3) + '%';
+  el.style.top  = (p.py / VH * 100).toFixed(3) + '%';
+  trail.setAttribute('d', AXIS.map((q, i) => `${i ? 'L' : 'M'} ${q.px} ${q.py}`).join(' '));
+  calOut.value += `{ id:'${p.id}', px:${p.px}, py:${p.py} },\n`;
+  calOut.scrollTop = calOut.scrollHeight;
+});
+
+/* 点击空白处收起说明浮层 */
+detailview.addEventListener('click', e => {
+  if (!e.target.closest('.sub') && !e.target.closest('.pop')) hidePop();
+});
+window.addEventListener('resize', () => { layout(); layoutDetail(); });
+
+/* ================= 启动渲染（放在最后，确保所有状态已就绪） ================= */
+renderHotspots();
+</script>
+</body>
+</html>
