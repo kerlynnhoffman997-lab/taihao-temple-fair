@@ -3,9 +3,9 @@
  'use strict';
  const phone=matchMedia('(max-width:680px), (max-width:920px) and (max-height:520px)');
  const landscape=matchMedia('(min-width:480px) and (max-width:920px) and (max-height:520px)');
- let stage,card,header,content,heading,title,count,name,subtitle,progress,toggle,toggleLabel,quick,explore,video,stamp,footer,previous,next,observer,frame=0;
+ let stage,card,header,content,heading,title,count,name,subtitle,progress,toggle,toggleLabel,notesButton,quick,explore,video,stamp,footer,previous,next,observer,frame=0;
  let options={},expanded=false,currentPoint=null,hasPrevious=false,hasNext=false,routeActive=false,ready=false,lastHeight=0,lastLayout='';
- let index=-1,total=0,chapter='',question='',hasVideo=false,canStamp=false,discovered=false;
+ let index=-1,total=0,chapter='',question='',hasVideo=false,canStamp=false,discovered=false,noteCount=0;
  const busy=()=>document.getElementById('pointPending')?.hidden===false;
  function queueLayout(){
   if(frame)return;
@@ -29,6 +29,9 @@
   toggleLabel.textContent=collapsed?(question||'你在图中发现了什么？'):'故事与玩法';
   toggle.title=question;
   toggle.setAttribute('aria-label',collapsed?(question||'当站观察问题')+'，展开故事与玩法':'收起故事与玩法');
+  notesButton.textContent='看点 '+noteCount;notesButton.disabled=waiting||!noteCount||typeof options.onNotes!=='function';
+  notesButton.setAttribute('aria-label','查看本场全部'+noteCount+'个看点');
+  notesButton.setAttribute('aria-expanded',String(!!document.getElementById('sceneNotesDetails')?.open));
   const hasPosition=routeActive&&index>=0&&total>0;
   count.hidden=!hasPosition;count.textContent=hasPosition?`${index+1}/${total}`:'';
   const place=document.getElementById('dcardTitle')?.textContent||'场景';
@@ -80,7 +83,8 @@
   heading.append(title,subtitle,progress);
   toggle=button('readingSheetToggle','rs-toggle','');toggle.setAttribute('aria-controls',content.id);
   toggleLabel=document.createElement('span');toggleLabel.className='rs-question';toggle.append(toggleLabel);
-  header.append(heading,toggle);if(close)header.append(close);
+  notesButton=button('readingNotes','rs-notes','看点');notesButton.setAttribute('aria-controls','sceneNotesDetails');
+  header.append(heading,toggle,notesButton);if(close)header.append(close);
   quick=document.createElement('div');quick.className='rs-quick';quick.setAttribute('aria-label','当站玩法');
   explore=button('readingExplore','rs-quick-action rs-explore','找细节');
   video=button('readingVideo','rs-quick-action rs-video','看短片');
@@ -89,6 +93,7 @@
   previous=button('readingPrevious','rs-step rs-previous','');next=button('readingNext','rs-step rs-next','');footer.append(previous,next);
   card.replaceChildren(header,quick,content,footer);
   toggle.addEventListener('click',()=>setExpanded(!expanded));
+  notesButton.addEventListener('click',event=>{event.stopPropagation();if(!notesButton.disabled)options.onNotes?.(notesButton)});
   heading.addEventListener('click',event=>{event.stopPropagation();if(!heading.disabled)options.onOverview?.(heading)});
   explore.addEventListener('click',event=>{event.stopPropagation();if(!explore.disabled&&!busy())options.onExplore?.(explore)});
   video.addEventListener('click',event=>{event.stopPropagation();if(!video.disabled&&!busy())options.onVideo?.(video)});
@@ -118,6 +123,7 @@
   hasVideo=typeof state.hasVideo==='boolean'?state.hasVideo:[...document.querySelectorAll('#pointMedia button')].some(node=>node.textContent.includes('短片'));
   canStamp=typeof state.canStamp==='boolean'?state.canStamp:!document.getElementById('dStampBtn')?.classList.contains('off');
   discovered=typeof state.discovered==='boolean'?state.discovered:changed?false:discovered;
+  noteCount=Number.isInteger(state.noteCount)?Math.max(0,state.noteCount):changed?0:noteCount;
   if(changed){expanded=false;content.scrollTop=0}
   apply();return api;
  }

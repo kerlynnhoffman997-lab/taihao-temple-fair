@@ -306,10 +306,12 @@
 <link rel="stylesheet" href="interaction-refinements.css?v=ux2">
 <link rel="stylesheet" href="stamp-book.css?v=ui1">
 <link rel="stylesheet" href="discovery-experience.css?v=discovery1">
-<link rel="stylesheet" href="reading-sheet.css?v=ui1">
+<link rel="stylesheet" href="reading-sheet.css?v=reference1">
 <link rel="stylesheet" href="ui-system.css?v=hotspot1">
 <link rel="stylesheet" href="ui-dialogs.css?v=ui1">
 <link rel="stylesheet" href="scene-hotspots.css?v=hotspot1">
+<link rel="stylesheet" href="scene-notes.css?v=reference1">
+<link rel="stylesheet" href="scene-exploration.css?v=reference1">
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -439,6 +441,7 @@ for (const type of ['pageswap','pagereveal']) {
       <div class="dgrad"></div>
       <div class="dtagbig" id="dtagbig"></div>
       <span class="scene-credit">AI 场景插画</span>
+      <button type="button" class="scene-look" id="sceneLook" aria-label="查看完整场景大图">看整图 ↗</button>
       <button type="button" class="scene-retry" id="sceneRetry" hidden>重新加载场景图</button>
     </div>
 
@@ -446,7 +449,8 @@ for (const type of ['pageswap','pagereveal']) {
       <button class="close" id="dcardClose" type="button" aria-label="返回地图">✕</button>
       <span class="cat" id="dcardCat"></span>
       <h3 id="dcardTitle"></h3>
-      <div class="step" id="dcardStep"></div><p id="pointPending" class="point-pending" role="status" hidden></p><div id="pointMedia" class="media-actions" aria-label="点位图片、视频与注解"></div>
+      <div class="step" id="dcardStep"></div><p id="pointPending" class="point-pending" role="status" hidden></p><div id="pointMedia" class="media-actions" aria-label="点位短片"></div>
+      <div id="sceneNotes"></div>
       <section class="point-story" aria-label="当站看点"><p id="storyPhase" class="story-phase"></p><p id="storyLead" class="story-lead"></p><button type="button" id="storyQuestion" class="story-question"></button></section>
       <div class="dtabs" id="dcardTabs" role="tablist" aria-label="点位说明"></div>
       <div class="dbody" id="dcardBody" role="tabpanel" tabindex="0" aria-label="点位说明正文"></div>
@@ -489,7 +493,8 @@ for (const type of ['pageswap','pagereveal']) {
 <script src="assets/js/image-viewer.js?v=discovery1"></script>
 <script src="assets/js/visitor-flow.js?v=discovery1"></script>
 <script src="assets/js/stamp-book.js?v=discovery1"></script>
-<script src="assets/js/reading-sheet.js?v=discovery1"></script>
+<script src="assets/js/reading-sheet.js?v=reference1"></script>
+<script src="assets/js/scene-notes.js?v=reference1"></script>
 <script>
 /* ================= 底图与版画插画 ================= */
 const MAP_SRC = 'assets/img/001.jpg';
@@ -543,7 +548,7 @@ const KC = { '建筑':'#3D6B8C','民俗':'#3E7C6F','非遗':'#B33B24','美食':'
 
 /* 全局状态（提前声明，供下方各模块初始化时安全引用） */
 let tourOn = false, touring = false, curDay = 0, lastMoved = 0;
-let visitorFlow=null,lastRouteIndex=0,visitSaveTimer=0,stampBook=null,guideBook=null,discoveryLog=null,showingRouteFinish=false,stampCompleteTimer=0;
+let visitorFlow=null,lastRouteIndex=0,visitSaveTimer=0,stampBook=null,guideBook=null,discoveryLog=null,sceneNotes=null,showingRouteFinish=false,stampCompleteTimer=0;
 let directImageAnnotation=false,viewerContext=null;
 let routeActive=false,routeIndex=0,routeBusy=false,tourRun=0,routeSelectionToken=0,routeTimer=0,routeGoTimer=0;
 let stampSet={};
@@ -1004,6 +1009,7 @@ function fillMedia(p,{crossfade=false}={}){
  let image=entry?.status==='ready'?entry.image:null;
  const credit=document.querySelector('.scene-credit');if(credit)credit.textContent=image?'AI 场景插画':entry?.status==='loading'?'场景插画载入中…':'地图局部';
  const retryButton=document.getElementById('sceneRetry');retryButton.hidden=!!image||entry?.status!=='failed';retryButton.disabled=false;
+ document.getElementById('sceneLook').hidden=!image;
  if(image){image.className='scene-photo';image.removeAttribute('id');image.alt=p.name}
  else{image=new Image();image.className='mapcrop';image.id='mapcrop';image.alt=p.name+' · 地图局部';image.src=MAP_SRC}
  if(previous===image){layoutDetail();return Promise.resolve()}
@@ -1083,6 +1089,7 @@ function positionPop(){
 }
 function openSub(p,index,trigger,{autoplay=true}={}){
  const item=(SUBS[p.id]||[])[index];if(!item)return;
+ previewSceneNote(null);
  visitorFlow?.media(index);stopTimeline();
  stopTourForReading();const oldVideo=pop.querySelector('video');if(oldVideo)oldVideo.pause();
  if(item.sceneImage&&window.TaihaoImageViewer){
@@ -1111,7 +1118,13 @@ function openSub(p,index,trigger,{autoplay=true}={}){
  if(!item.v)recordDiscovery(p.id,'annotation',index);
 }
 function syncSubState(index=null){
+ dsubs.classList.toggle('has-active-note',index!==null);
  dsubs.querySelectorAll('.sub').forEach(button=>{const open=Number(button.dataset.i)===index;button.classList.toggle('on',open);button.setAttribute('aria-expanded',String(open))});
+}
+function previewSceneNote(index){
+ const active=Number.isInteger(index);dsubs.classList.toggle('is-peeking',active);
+ dsubs.querySelectorAll('.sub').forEach(button=>button.classList.toggle('is-peek',active&&Number(button.dataset.i)===index));
+ sceneNotes?.highlight(active?index:null);
 }
 function positionSubLabel(button,{reveal=true}={}){
  const label=button.querySelector('.sub-label');if(!label)return;
@@ -1133,6 +1146,7 @@ function dismissSubLabel(){
  if(!button)return false;button.dataset.labelDismissed='true';return true;
 }
 function fillSubs(p){
+ previewSceneNote(null);
  const shapes={story:'<path d="M8 3v10M3 8h10"/>',image:'<rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="m3 11 3-3 2.5 2 2-3 2.5 4"/><circle cx="5.2" cy="5.7" r=".8"/>',video:'<path d="m5 3 8 5-8 5z" fill="currentColor" stroke="none"/>'};
  dsubs.replaceChildren();
  for(const [index,item] of (SUBS[p.id]||[]).entries()){
@@ -1143,21 +1157,19 @@ function fillSubs(p){
   const icon=document.createElement('span');icon.className='sub-icon';icon.setAttribute('aria-hidden','true');icon.innerHTML='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+shapes[kind]+'</svg>';
   const label=document.createElement('span');label.className='sub-label';label.setAttribute('aria-hidden','true');label.textContent=verb+' · '+item.t;
   button.append(icon,label);button.onclick=e=>{e.stopPropagation();openSub(p,index,button)};
-  button.addEventListener('pointerenter',()=>positionSubLabel(button));button.addEventListener('focus',()=>positionSubLabel(button));button.addEventListener('pointerleave',()=>delete button.dataset.labelDismissed);
+  button.addEventListener('pointerenter',()=>{positionSubLabel(button);previewSceneNote(index)});button.addEventListener('focus',()=>{positionSubLabel(button);previewSceneNote(index)});button.addEventListener('pointerleave',()=>{delete button.dataset.labelDismissed;previewSceneNote(null)});button.addEventListener('blur',()=>previewSceneNote(null));
   dsubs.append(button);
  }
  window.TaihaoScenes?.positionAnnotations(p.id,dsubs,dsubs.querySelectorAll('.sub'));
  syncSubState(activeSub?.point===p?activeSub.index:null);
 }
 function fillPointMedia(p){
- const entries=SUBS[p.id]||[],video=entries.findIndex(e=>e.v),image=entries.findIndex(e=>e.img),text=entries.findIndex(e=>!e.v&&!e.img),items=[];
+ const entries=SUBS[p.id]||[],video=entries.findIndex(e=>e.v),items=[];
  if(video>=0)items.push({index:video,label:'看民俗短片'});
- if(ART[p.id])items.push({action:'image',label:'放大场景'});
- else if(image>=0)items.push({index:image,label:'查看细节图'});
- if(text>=0)items.push({index:text,label:'场景注解'});
  const box=document.getElementById('pointMedia');box.hidden=!items.length;
- box.innerHTML=items.map(item=>`<button type="button" class="media-action" ${item.action?`data-media-action="${item.action}"`:`data-sub-index="${item.index}"`}>${item.label} ↗</button>`).join('');
- box.onclick=e=>{const button=e.target.closest('button');if(!button)return;e.stopPropagation();if(button.dataset.mediaAction==='image')openSceneImage(button);else if(button.hasAttribute('data-sub-index'))openSub(state.cur,+button.dataset.subIndex,button)};
+ box.innerHTML=items.map(item=>`<button type="button" class="media-action" data-sub-index="${item.index}">${item.label} ↗</button>`).join('');
+ box.onclick=e=>{const button=e.target.closest('button');if(!button)return;e.stopPropagation();if(button.hasAttribute('data-sub-index'))openSub(state.cur,+button.dataset.subIndex,button)};
+ sceneNotes?.sync({pointId:p.id,name:p.name,notes:entries.map(item=>({title:item.t,kind:item.v?'video':item.img?'image':'story'})),hasImage:!!ART[p.id]});
 }
 function hidePop(restoreFocus=false,{history=true}={}){
  if(history&&pop.classList.contains('show'))visitorFlow?.closeMedia();
@@ -1173,6 +1185,7 @@ let cardTab = '习俗';
 function storyFor(p){return window.TaihaoStories?.points[p.id]||{}}
 function chapterFor(p){return window.TaihaoStories?.chapters.find(chapter=>chapter.id===storyFor(p).chapterId)}
 function recordDiscovery(id,kind='story',index=null){
+ if(Number.isInteger(index))sceneNotes?.markOpened(id,index);
  const fresh=discoveryLog?.record(id,{kind,index});
  if(fresh)notifyVisitor(discoveryLog.persisted?'已记下一个发现 · 可在香印册中回看':'本次云游已记下一个发现');
 }
@@ -1264,6 +1277,7 @@ async function swapDetail(p){
 }
 async function closeDetail({fromTour=false}={}){
  visitorFlow?.map();setDetailPending(null);
+ sceneNotes?.close();previewSceneNote(null);
  if(!fromTour&&routeActive)endRouteNavigation();if(state.level==='map')return;
  ++detailToken;hidePop();finishPictureFade();window.TaihaoSound?.stop();
  detailview.classList.remove('in','fading');detailview.classList.add('out');mapview.classList.remove('pushing');mapview.inert=false;
@@ -1281,13 +1295,9 @@ function renderCaps() {
     h += `<span class="cap on">⌂ 巡游地图</span>`;
     h += `<span class="cap flat">共 ${POIS.length} 处点位 · 点击呼吸光点走近场景</span>`;
   } else {
-    const i = SEQ.indexOf(s.cur);
-    h += `<button type="button" class="cap" data-act="home">‹ 返回地图</button>`;
-    h += `<button type="button" class="cap ${i > 0 ? '' : 'off'}" ${i>0?'':'disabled'} data-act="prev">‹ 上一处</button>`;
-    h += `<span class="cap on">${s.cur.step}</span>`;
-    h += `<span class="cap flat">${s.cur.name}</span>`;
-    h += `<button type="button" class="cap ${i < SEQ.length - 1 ? '' : 'off'}" ${i<SEQ.length-1?'':'disabled'} data-act="next">下一处 ›</button>`;
-    if (touring) h += `<span class="cap on">巡游中…</span>`;
+    if(!routeActive){const i=SEQ.indexOf(s.cur);
+     h+=`<button type="button" class="cap ${i>0?'':'off'}" ${i>0?'':'disabled'} data-act="prev" aria-label="上一处场景">‹</button><span class="cap-position" aria-label="第${i+1}处，共${SEQ.length}处">${i+1} / ${SEQ.length}</span><button type="button" class="cap ${i<SEQ.length-1?'':'off'}" ${i<SEQ.length-1?'':'disabled'} data-act="next" aria-label="下一处场景">›</button>`;
+    }
   }
   capsbar.innerHTML = h;updateRouteFinish();syncPrimaryNavigation();syncReadingSheet();
 }
@@ -1300,7 +1310,7 @@ function syncPrimaryNavigation(){
 function syncReadingSheet(){
  if(!state.cur)return;
  const sequence=routeActive?AXIS:SEQ,index=sequence.indexOf(state.cur),story=storyFor(state.cur);
- window.TaihaoReadingSheet?.sync({pointId:state.cur.id,hasPrevious:index>0,hasNext:index>=0&&index<sequence.length-1,routeActive,index,total:sequence.length,chapterTitle:chapterFor(state.cur)?.title||'庙会风物',question:story.question||'',hasVideo:(SUBS[state.cur.id]||[]).some(item=>item.v),canStamp:STAMPS.includes(state.cur.id),discovered:!!discoveryLog?.has(state.cur.id)});
+ window.TaihaoReadingSheet?.sync({pointId:state.cur.id,hasPrevious:index>0,hasNext:index>=0&&index<sequence.length-1,routeActive,index,total:sequence.length,chapterTitle:chapterFor(state.cur)?.title||'庙会风物',question:story.question||'',hasVideo:(SUBS[state.cur.id]||[]).some(item=>item.v),canStamp:STAMPS.includes(state.cur.id),discovered:!!discoveryLog?.has(state.cur.id),noteCount:(SUBS[state.cur.id]||[]).length});
 }
 document.querySelector('.brand').addEventListener('click',e=>{if(state.level!=='map'&&e.button===0&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();closeDetail()}});
 capsbar.addEventListener('click', e => {
@@ -1308,13 +1318,13 @@ capsbar.addEventListener('click', e => {
   const a = c.dataset.act;
   if (a === 'home') { closeDetail(); }
   if(a==='prev'||a==='next')stopTourForReading();
-  if (a === 'prev') { const i = SEQ.indexOf(state.cur); if (i > 0) swapDetail(SEQ[i-1]); }
-  if (a === 'next') { const i = SEQ.indexOf(state.cur); if (i < SEQ.length-1) swapDetail(SEQ[i+1]); }
+  if(a==='prev'||a==='next')stepFromReading(a==='prev'?-1:1);
 });
 renderCaps();
 window.addEventListener('keydown', e => {
   if(window.TaihaoImageViewer?.isOpen||document.getElementById('nearbyPicker').open||stampBook?.isOpen||guideBook?.isOpen)return;
   if(e.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+  if(e.key==='Escape'&&!pop.classList.contains('show')&&sceneNotes?.isOpen&&e.target.closest('#sceneNotes')){e.preventDefault();sceneNotes.close();document.getElementById('sceneNotesSummary')?.focus({preventScroll:true});return}
   if(e.key==='Escape'&&dismissSubLabel()){e.preventDefault();return}
   if(e.key==='Escape'){if(atlas.classList.contains('show')){closeAtlas();return}if(pop.classList.contains('show')){hidePop(true);return}if(!moreTools.hidden)return;closeDetail();}
   if(atlas.classList.contains('show')||!moreTools.hidden||pop.classList.contains('show'))return;
@@ -1675,7 +1685,8 @@ function setDetailPending(point){
  pending.textContent=point?'正在前往 · '+point.name:'';
  document.getElementById('dcard').setAttribute('aria-busy',String(!!point));
  dsubs.inert=!!point;document.getElementById('dimg').setAttribute('aria-busy',String(!!point));
- for(const region of document.querySelectorAll('#dcardTabs,#pointMedia,#dcard .acts,.point-story,.point-discovery,.related-folk'))region.inert=!!point;
+ document.getElementById('sceneLook').disabled=!!point;
+ for(const region of document.querySelectorAll('#dcardTabs,#pointMedia,#sceneNotes,#dcard .acts,.point-story,.point-discovery,.related-folk'))region.inert=!!point;
 }
 function syncRouteStartLabel(){document.getElementById('btnTour').textContent=routeActive?'结束巡游':lastRouteIndex>0?'继续巡游':'▶ 开始进香巡游'}
 function updateRouteFinish(){
@@ -1759,6 +1770,13 @@ window.addEventListener('pageshow',event=>{if(event.persisted)visitorFlow?.refre
 
 /* ================= 启动渲染（放在最后，确保所有状态已就绪） ================= */
 discoveryLog=window.TaihaoDiscoveryLog?.create({points:window.TaihaoStories?.points||{},annotationCounts:Object.fromEntries(POIS.map(p=>[p.id,(SUBS[p.id]||[]).length]))});
+sceneNotes=window.TaihaoSceneNotes?.create({container:document.getElementById('sceneNotes'),
+ onChoose:(index,trigger)=>{if(state.cur)openSub(state.cur,index,trigger)},onPeek:previewSceneNote,
+ onOpen:()=>{stopTourForReading();window.TaihaoReadingSheet?.expand()},
+ onToggle:open=>document.getElementById('readingNotes')?.setAttribute('aria-expanded',String(open)),
+ onViewImage:trigger=>openSceneImage(trigger)
+});
+document.getElementById('sceneLook').onclick=function(event){event.stopPropagation();openSceneImage(this)};
 guideBook=window.TaihaoJourneyGuide?.create({
  points:POIS,chapters:window.TaihaoStories?.chapters||[],sources:window.TaihaoStories?.sources||[],getCurrent:()=>state.cur?.id,hasDiscovery:id=>!!discoveryLog?.has(id),
  onOpen:()=>{visitorFlow?.openOverlay('guide');stopTimeline();stopTourForReading();hidePop();closeMoreTools();closeAtlas({restoreFocus:false});stampBook?.close({restoreFocus:false,notify:false})},
@@ -1780,7 +1798,7 @@ window.TaihaoReadingSheet?.init({
  onPrevious:()=>stepFromReading(-1),onNext:()=>stepFromReading(1),onExpandChange:expanded=>{if(expanded)stopTourForReading()},
  onExplore:trigger=>{if(state.cur)openSub(state.cur,storyFor(state.cur).focusIndex||0,trigger)},
  onVideo:trigger=>{if(!state.cur)return;const index=(SUBS[state.cur.id]||[]).findIndex(item=>item.v);if(index>=0)openSub(state.cur,index,trigger)},
- onStamp:()=>document.getElementById('dStampBtn').click(),onOverview:trigger=>guideBook?.open(trigger)
+ onStamp:()=>document.getElementById('dStampBtn').click(),onOverview:trigger=>guideBook?.open(trigger),onNotes:trigger=>sceneNotes?.open(trigger)
 });
 function stepFromReading(direction){
  if(state.level!=='detail')return;stopTourForReading();

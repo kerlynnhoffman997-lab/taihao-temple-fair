@@ -1,0 +1,24 @@
+/* Picture + named clues: reduce duplicate chrome and keep the painting accessible. */
+.detailview .dtagbig{display:none}
+.capsbar{gap:0;padding:0;border:1px solid #c6ae8b;border-radius:3px;background:#fff9ed;box-shadow:none}
+.capsbar:empty{display:none}
+.capsbar .cap{display:inline-flex;align-items:center;justify-content:center;width:44px;min-width:44px;min-height:44px;padding:0;border:0;border-radius:0;background:transparent;color:#6b432a;box-shadow:none;font-size:23px}
+.capsbar .cap:hover:not(:disabled){background:#f0e2cb;color:#8d2e20}
+.cap-position{display:flex;align-items:center;justify-content:center;min-width:68px;min-height:44px;border-inline:1px dashed #d2bea0;color:#7f5234;font-size:11px;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.scene-look{position:absolute;left:10px;bottom:10px;z-index:3;display:inline-flex;align-items:center;justify-content:center;min-width:76px;min-height:44px;padding:8px 10px;border:1px solid #b99e7a;border-radius:2px;background:#fff9edf5;color:#81432b;font:inherit;font-size:11px;line-height:1.4;cursor:pointer;box-shadow:none}
+.scene-look:hover{background:#fff9ed;border-color:#a43623;color:#a43623}
+.scene-look:focus-visible{outline:2px solid #a43623;outline-offset:2px}
+.scene-look:disabled{opacity:.45;cursor:wait}
+.scene-look[hidden]{display:none!important}
+#dsubs.is-peeking .sub:not(.is-peek),#dsubs.has-active-note:not(.is-peeking) .sub:not(.on){opacity:.35}
+#dsubs .sub.is-peek::before{background:#7e281a;box-shadow:0 0 0 2px #fff9ed,0 0 0 4px #a43623}
+@media(min-width:921px){
+ .has-detail .capsbar{left:calc(min(378px,30vw) + 68px);top:calc(var(--toolbar-height) + 24px);transform:none}
+}
+@media(max-width:680px){
+ .scene-look{left:8px;bottom:8px;min-width:68px;padding-inline:6px;font-size:10px}
+}
+@media(max-width:680px),(max-width:920px) and (max-height:520px){
+ .detailview:has(.reading-sheet-ready.rs-expanded) .scene-look{display:none}
+}
+@media(prefers-reduced-motion:reduce){#dsubs .sub{transition:none!important}}

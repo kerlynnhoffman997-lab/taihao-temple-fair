@@ -1,6 +1,6 @@
 /* Scene reading ticket: clear actions, a numbered seal, and a quiet paper surface. */
 .rs-header,.rs-content{display:contents}
-.rs-heading,.rs-toggle,.rs-footer,.rs-quick{display:none}
+.rs-heading,.rs-toggle,.rs-footer,.rs-quick,.rs-notes{display:none}
 @media(max-width:680px),(max-width:920px) and (max-height:520px){
  html:has(.stage.has-detail.reading-sheet-enabled){--toolbar-height:56px}
  .stage.has-detail.reading-sheet-enabled{--rs-scene-top:64px;--reading-sheet-height:206px}
@@ -27,7 +27,11 @@
  .reading-sheet-ready .rs-subtitle{display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#75654f;font-size:10px;line-height:1.35;letter-spacing:.3px}
  .reading-sheet-ready .rs-progress{position:absolute;display:block;left:0;right:5px;bottom:0;height:1px;border-radius:0;background:#d9cdb9;pointer-events:none}
  .reading-sheet-ready .rs-progress i{display:block;width:var(--rs-progress,0%);height:100%;background:#a43623}
- .reading-sheet-ready .rs-toggle{grid-column:1/-1;grid-row:2;display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;min-width:0;min-height:44px;padding:7px 0;border:0;border-radius:0;background:transparent;color:#554634;font:inherit;font-size:11px;line-height:1.3;text-align:left;cursor:pointer;touch-action:manipulation}
+ .reading-sheet-ready .rs-toggle{grid-column:1;grid-row:2;display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;min-width:0;min-height:44px;padding:7px 0;border:0;border-radius:0;background:transparent;color:#554634;font:inherit;font-size:11px;line-height:1.3;text-align:left;cursor:pointer;touch-action:manipulation}
+ .reading-sheet-ready .rs-notes{grid-column:2;grid-row:2;display:flex;align-items:center;justify-content:center;width:44px;height:44px;min-height:44px;padding:3px 0;border:0;border-left:1px dashed #c4b399;border-radius:0;background:transparent;color:#963624;font:inherit;font-size:10px;white-space:nowrap;cursor:pointer}
+ .reading-sheet-ready .rs-notes:focus-visible{outline:2px solid #a43623;outline-offset:-2px}
+ .reading-sheet-ready .rs-notes:disabled{opacity:.45;cursor:default}
+ .reading-sheet-ready.rs-expanded .rs-notes{display:none}
  .reading-sheet-ready .rs-toggle::before{content:'问';display:flex;align-items:center;justify-content:center;flex:0 0 19px;width:19px;height:19px;border:1px solid #a43623;color:#a43623;font-family:"Noto Serif SC",SimSun,serif;font-size:11px;line-height:1}
  .reading-sheet-ready .rs-question{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  .reading-sheet-ready .rs-toggle::after{content:'⌃';flex-shrink:0;font-size:15px;line-height:1}
