@@ -310,6 +310,7 @@
 <link rel="stylesheet" href="ui-system.css?v=hotspot1">
 <link rel="stylesheet" href="ui-dialogs.css?v=ui1">
 <link rel="stylesheet" href="scene-hotspots.css?v=hotspot1">
+<link rel="stylesheet" href="music-controls.css?v=music1">
 <link rel="stylesheet" href="scene-notes.css?v=reference1">
 <link rel="stylesheet" href="scene-exploration.css?v=reference1">
 <script>
@@ -392,6 +393,7 @@ for (const type of ['pageswap','pagereveal']) {
   <header class="topbar" aria-label="庙会地图工具栏">
     <div class="row1">
       <a class="brand" href="./" aria-label="太昊陵庙会首页"><span class="brand-back" aria-hidden="true" hidden>←</span><span id="brandLabel">太昊陵<em>庙会</em></span></a>
+      <button class="music-toggle" id="musicToggle" data-music-toggle type="button" aria-pressed="false" aria-label="开启背景音乐"><svg class="music-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17V5l11-2v12M9 8l11-2"/><ellipse cx="6" cy="17" rx="3" ry="2" fill="currentColor" stroke="none"/><ellipse cx="17" cy="15" rx="3" ry="2" fill="currentColor" stroke="none"/><path class="music-off-slash" d="m3 3 18 18"/></svg><span data-music-label>音乐：关</span></button>
       <div class="actions">
         <button class="btn primary" id="btnTour" type="button">▶ 开始进香巡游</button>
         <button class="btn" id="btnAtlas" type="button">民俗图鉴</button>
@@ -421,6 +423,7 @@ for (const type of ['pageswap','pagereveal']) {
           <button class="chip lay" data-layer="heat" type="button"><i style="background:#D85A30"></i>人流热度示意</button>
         </div>
       </div>
+<div class="tool-section music-settings"><p class="tool-label">背景音乐</p><label for="musicVolume">音乐音量 <output id="musicVolumeValue" for="musicVolume">28%</output></label><input id="musicVolume" type="range" min="0" max="100" value="28" aria-label="背景音乐音量"><button class="music-toggle music-menu-toggle" id="musicMenuToggle" data-music-toggle type="button" aria-pressed="false" aria-label="开启背景音乐"><svg class="music-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17V5l11-2v12M9 8l11-2"/><ellipse cx="6" cy="17" rx="3" ry="2" fill="currentColor" stroke="none"/><ellipse cx="17" cy="15" rx="3" ry="2" fill="currentColor" stroke="none"/><path class="music-off-slash" d="m3 3 18 18"/></svg><span data-music-label>音乐：关</span></button><p id="musicStatus" class="music-note" role="status" aria-live="polite">原创器乐合成，可循环播放。</p></div>
 <div class="tool-section sound-settings"><p class="tool-label">声音设置</p><label for="soundVolume">音量 <output id="soundVolumeValue">28%</output></label><input id="soundVolume" type="range" min="0" max="100" value="28" aria-label="提示音与音景音量"><button class="btn" id="soundMenuToggle" type="button" aria-pressed="false">开启操作提示音</button><button class="btn" id="soundPreview" type="button" aria-pressed="false">播放合成音景</button><p class="sound-note" id="soundStatus" aria-live="polite">音景独立播放，非现场录音。</p></div>
       <div class="tool-section tool-utilities">
         <button class="btn" id="btnTrail" type="button">显示巡游路线</button>
@@ -484,7 +487,7 @@ for (const type of ['pageswap','pagereveal']) {
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/motion-mini.js"></script><script src="assets/js/motion-ui.js"></script>
 <script src="assets/vendor/embla-carousel.umd.js"></script><script src="assets/js/route-navigation.js?v=flow1"></script>
-<script src="assets/vendor/howler.core-2.2.4.min.js"></script><script src="assets/js/sound.js?v=ux2"></script>
+<script src="assets/vendor/howler.core-2.2.4.min.js"></script><script src="assets/js/sound.js?v=ux2"></script><script src="assets/js/background-music.js?v=music1"></script>
 <script src="assets/js/scene-assets.js?v=scenes1"></script>
 <script src="assets/js/scene-annotations.js?v=scenes1"></script>
 <script src="assets/js/visitor-stories.js?v=discovery1"></script>

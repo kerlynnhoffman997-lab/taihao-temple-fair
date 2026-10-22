@@ -16,11 +16,14 @@
 <link rel="stylesheet" href="home.css?v=discovery1">
 <link rel="stylesheet" href="transition.css?v=entry2">
 <link rel="stylesheet" href="ui-system.css?v=ui1">
+<link rel="stylesheet" href="music-controls.css?v=music1">
 <link rel="preload" as="image" href="assets/home/optimized/home-03.webp" type="image/webp" fetchpriority="high">
 <script src="assets/vendor/motion-mini.js" defer></script>
 <script src="assets/js/motion-ui.js" defer></script>
 <script src="home.js?v=discovery1" defer></script>
 <script src="assets/js/home-resume.js?v=discovery1" defer></script>
+<script src="assets/vendor/howler.core-2.2.4.min.js" defer></script>
+<script src="assets/js/background-music.js?v=music1" defer></script>
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -44,7 +47,7 @@ See THIRD_PARTY_NOTICES.txt. The original tour is retained in tour.html. -->
 <a class="skip-link" href="#enter">跳到庙会入口</a>
 <header class="site-header">
 <a class="wordmark" href="./" aria-label="太昊陵庙会首页"><span class="wordmark-cn">太昊陵<span class="wordmark-dot" aria-hidden="true"></span>庙会</span><span class="wordmark-en">TAIHAO TEMPLE FAIR</span></a>
-<a class="header-link" href="tour.html?start=route">走进庙会 <span aria-hidden="true">↗</span></a>
+<div class="home-header-actions"><button class="music-toggle" id="musicToggle" data-music-toggle type="button" aria-pressed="false" aria-label="开启背景音乐"><svg class="music-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17V5l11-2v12M9 8l11-2"/><ellipse cx="6" cy="17" rx="3" ry="2" fill="currentColor" stroke="none"/><ellipse cx="17" cy="15" rx="3" ry="2" fill="currentColor" stroke="none"/><path class="music-off-slash" d="m3 3 18 18"/></svg><span data-music-label>音乐：关</span></button><a class="header-link" href="tour.html?start=route">走进庙会 <span aria-hidden="true">↗</span></a></div>
 </header>
 <main class="hero" aria-labelledby="page-title" aria-describedby="gallery-description">
 <p class="sr-only" id="gallery-description">环绕画廊展示巡游表演、民俗手作与庙会小吃插画。可用页面底部按钮控制播放，或直接进入庙会地图。</p>

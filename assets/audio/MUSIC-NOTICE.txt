@@ -1,0 +1,8 @@
+太昊陵庙会网站原创合成背景音乐
+
+taihao-background.wav 为本网站原创的五声音阶背景音轨：8 小节、4/4 拍、60 BPM、32 秒。以数学振荡器、谐波包络与低强度噪声合成轻柔拨弦和柔和管音色，并通过首尾环绕叠加尾音与空间反射形成循环。
+
+无第三方采样、无外部录音、无引用现有曲目；并非庙会现场录音、传统仪式音乐或真实民族乐器录音。
+
+PCM WAV / mono / 22050 Hz / 16-bit / 32 seconds.
+Original mathematical synthesis for this website. No third-party samples, field recordings or existing compositions. The plucked-string and soft pipe colours are synthetic. This is not an authentic recording of traditional music or ritual.
