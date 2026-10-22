@@ -68,3 +68,9 @@
 @media(min-width:480px) and (max-width:920px) and (max-height:520px){
  .stage.has-detail.reading-sheet-enabled .route-dock{left:10px;transform:none;width:calc(100% - var(--rs-aside-width) - 30px)}
 }
+
+/* The selected mobile stop shows route position and chapter without a taller rail. */
+@media(max-width:680px),(max-width:920px) and (max-height:520px){
+ .stage.has-detail.reading-sheet-enabled .route-stop[aria-current="step"] .route-step[data-reading-progress]{font-size:0}
+ .stage.has-detail.reading-sheet-enabled .route-stop[aria-current="step"] .route-step[data-reading-progress]::after{content:attr(data-reading-progress);font-size:9px;line-height:1.25}
+}

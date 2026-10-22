@@ -22,6 +22,10 @@
 .taihao-image-viewer .tv-message:empty{display:none}
 .taihao-image-viewer .tv-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 16px;color:#796d5c;font-size:11px;line-height:1.5}
 .taihao-image-viewer .tv-scale{font-variant-numeric:tabular-nums;flex-shrink:0}
+.taihao-image-viewer .tv-footer.has-caption{flex-wrap:wrap;row-gap:5px}
+.taihao-image-viewer .tv-caption{flex:1 1 100%;min-width:0;max-height:min(84px,16svh);overflow:auto;margin:0;color:#493a2b;font-size:12px;line-height:1.6;overflow-wrap:anywhere;overscroll-behavior:contain}
+.taihao-image-viewer .tv-caption[hidden]{display:none}
+.taihao-image-viewer .tv-caption:focus-visible{outline:2px solid #b33b24;outline-offset:2px}
 @keyframes tv-arrive{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media(max-width:580px){.taihao-image-viewer{width:calc(100vw - 16px);height:calc(100svh - 24px);border-radius:8px}.taihao-image-viewer .tv-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px}.taihao-image-viewer h2{grid-column:1/-1;font-size:15px}.taihao-image-viewer .tv-actions{grid-column:1/-1;justify-content:flex-end}.taihao-image-viewer .tv-footer{padding:8px 10px;font-size:10px}.taihao-image-viewer .tv-button{font-size:12px}.taihao-image-viewer .tv-close{font-size:26px}}
 @media(max-height:480px) and (min-width:581px){.taihao-image-viewer{height:calc(100svh - 16px);width:calc(100vw - 24px)}.taihao-image-viewer .tv-header{padding:6px 10px;gap:12px}.taihao-image-viewer h2{font-size:14px}.taihao-image-viewer .tv-footer{padding:4px 10px;font-size:10px}}

@@ -298,14 +298,15 @@
   }
 </style>
 <link rel="stylesheet" href="map-experience.css?v=refine2">
-<link rel="stylesheet" href="route-navigation.css?v=ux2">
+<link rel="stylesheet" href="route-navigation.css?v=discovery1">
 <link rel="stylesheet" href="tour-experience.css?v=tour1">
 <link rel="stylesheet" href="scene-images.css?v=scenes1">
-<link rel="stylesheet" href="image-viewer.css?v=ux2">
+<link rel="stylesheet" href="image-viewer.css?v=discovery1">
 <link rel="stylesheet" href="visitor-flow.css?v=flow1">
 <link rel="stylesheet" href="interaction-refinements.css?v=ux2">
-<link rel="stylesheet" href="stamp-book.css?v=ux2">
-<link rel="stylesheet" href="reading-sheet.css?v=ux2">
+<link rel="stylesheet" href="stamp-book.css?v=discovery1">
+<link rel="stylesheet" href="discovery-experience.css?v=discovery1">
+<link rel="stylesheet" href="reading-sheet.css?v=discovery1">
 <script>
 // Navigation or viewport changes can skip native snapshots. Keep the normal
 // paper-to-map reveal in control when the optional native transition aborts.
@@ -323,7 +324,7 @@ for (const type of ['pageswap','pagereveal']) {
 </head>
 <body class="map-loading">
 <div class="stage">
-<section class="map-context" aria-labelledby="map-title"><div><p class="map-eyebrow">太昊陵庙会 · 进香巡游</p><h1 id="map-title">循香入境</h1></div><p class="map-intro">沿中轴走一趟进香路，也可点选风物，自由漫游。</p><button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="开启操作提示音">提示音：关</button></section>
+<section class="map-context" aria-labelledby="map-title"><div><p class="map-eyebrow">线上民俗云游 · 24处风物</p><h1 id="map-title">循香入境</h1></div><p class="map-intro">13站循香而行，沿途9处可集印；也可自由找点。</p><button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="开启操作提示音">提示音：关</button></section>
 
   <!-- ===== 首页 · 地图 ===== -->
   <div class="mapview" id="mapview" tabindex="0" role="region" aria-label="互动地图，方向键平移，加减键缩放，Home键总览">
@@ -341,7 +342,7 @@ for (const type of ['pageswap','pagereveal']) {
       </div>
     </div>
 
-<div class="map-controls" aria-label="地图视野控制"><button id="zoomIn" type="button" aria-label="放大地图">＋</button><button id="zoomOut" type="button" aria-label="缩小地图">−</button><button id="mapOverview" type="button" aria-label="查看地图总览">全</button></div><button type="button" class="map-caption" id="mapCaption" aria-label="查找庙会点位">查找24处点位 →</button>
+<div class="map-controls" aria-label="地图与巡游控制"><button id="zoomIn" type="button" aria-label="放大地图">＋</button><button id="zoomOut" type="button" aria-label="缩小地图">−</button><button id="mapOverview" type="button" aria-label="查看地图总览">全</button><button id="journeyAbout" class="journey-about" type="button" aria-label="查看巡游玩法与四段故事">玩法</button></div><button type="button" class="map-caption" id="mapCaption" aria-label="查找庙会点位">查找24处点位 →</button>
     <div id="mapLoadStatus" class="map-load-status" role="status" hidden><p>地图暂未载入，仍可从图鉴选择地点。</p><button type="button" id="mapRetry">重新加载地图</button><button type="button" id="mapFallbackAtlas">打开点位图鉴</button></div>
     <div class="legend">
       <span class="map-desktop-hint">拖拽平移 · 滚轮缩放</span><span class="map-touch-hint">单指漫游 · 双指缩放</span> · 点击光点探索<br>
@@ -443,8 +444,11 @@ for (const type of ['pageswap','pagereveal']) {
       <span class="cat" id="dcardCat"></span>
       <h3 id="dcardTitle"></h3>
       <div class="step" id="dcardStep"></div><p id="pointPending" class="point-pending" role="status" hidden></p><div id="pointMedia" class="media-actions" aria-label="点位图片、视频与注解"></div>
+      <section class="point-story" aria-label="当站看点"><p id="storyPhase" class="story-phase"></p><p id="storyLead" class="story-lead"></p><button type="button" id="storyQuestion" class="story-question"></button></section>
       <div class="dtabs" id="dcardTabs" role="tablist" aria-label="点位说明"></div>
       <div class="dbody" id="dcardBody" role="tabpanel" tabindex="0" aria-label="点位说明正文"></div>
+      <div class="point-discovery"><p id="pointTakeaway"></p><button id="rememberDiscovery" type="button">记下这个发现</button></div>
+      <div class="related-folk" id="relatedFolk"></div>
       <div class="acts">
         <button class="ab audio" id="dAudioBtn" type="button">▷ 试听合成音景</button>
         <button class="ab stamp" id="dStampBtn" type="button">在此进香 · 盖香印</button>
@@ -476,10 +480,13 @@ for (const type of ['pageswap','pagereveal']) {
 <script src="assets/vendor/howler.core-2.2.4.min.js"></script><script src="assets/js/sound.js?v=ux2"></script>
 <script src="assets/js/scene-assets.js?v=scenes1"></script>
 <script src="assets/js/scene-annotations.js?v=scenes1"></script>
-<script src="assets/js/image-viewer.js?v=ux2"></script>
-<script src="assets/js/visitor-flow.js?v=ux2"></script>
-<script src="assets/js/stamp-book.js?v=ux2"></script>
-<script src="assets/js/reading-sheet.js?v=ux2"></script>
+<script src="assets/js/visitor-stories.js?v=discovery1"></script>
+<script src="assets/js/discovery-log.js?v=discovery1"></script>
+<script src="assets/js/journey-guide.js?v=discovery1"></script>
+<script src="assets/js/image-viewer.js?v=discovery1"></script>
+<script src="assets/js/visitor-flow.js?v=discovery1"></script>
+<script src="assets/js/stamp-book.js?v=discovery1"></script>
+<script src="assets/js/reading-sheet.js?v=discovery1"></script>
 <script>
 /* ================= 底图与版画插画 ================= */
 const MAP_SRC = 'assets/img/001.jpg';
@@ -533,7 +540,8 @@ const KC = { '建筑':'#3D6B8C','民俗':'#3E7C6F','非遗':'#B33B24','美食':'
 
 /* 全局状态（提前声明，供下方各模块初始化时安全引用） */
 let tourOn = false, touring = false, curDay = 0, lastMoved = 0;
-let visitorFlow=null,lastRouteIndex=0,visitSaveTimer=0,stampBook=null,showingRouteFinish=false,stampCompleteTimer=0;
+let visitorFlow=null,lastRouteIndex=0,visitSaveTimer=0,stampBook=null,guideBook=null,discoveryLog=null,showingRouteFinish=false,stampCompleteTimer=0;
+let directImageAnnotation=false,viewerContext=null;
 let routeActive=false,routeIndex=0,routeBusy=false,tourRun=0,routeSelectionToken=0,routeTimer=0,routeGoTimer=0;
 let stampSet={};
 try{const saved=JSON.parse(localStorage.getItem('thaihao-stamps')||'{}');if(saved&&typeof saved==='object'&&!Array.isArray(saved))stampSet=saved}catch{}
@@ -568,14 +576,14 @@ const POIS = [
     desc:'中轴线主大殿，整个陵区的祭祀核心。香客到此焚香，摆放糕点、水果、压缩馍等供品，跪拜伏羲，祈求国泰民安、阖家顺遂。大型官方公祭大典即在殿前月台举办。',
     tip:'', tags:['敬献香供','公祭月台','中轴核心'] },
   { id:'q7', cat:'axis', step:'第 7 站', name:'显仁殿', px:778, py:474, lx:136, ly:-48,
-    desc:'殿台东北角青石台基上有一处圆孔，称“子孙窑”，是六千多年前远古民俗的遗存。香客抚摸这个石头圆孔——顺时针摸祈男孩，逆时针摸祈女孩，祈求子孙绵延、家庭和睦。',
+    desc:'殿台东北角青石台基上有一处圆孔，民间称“子孙窑”。摸石孔的旧俗寄托着子孙绵延、家庭和睦的愿望；顺逆方向与求子的讲述，属于当地民俗叙事。',
     tip:'相传伏羲女娲制定嫁娶之礼，此石亦被视为远古婚配礼俗的遗存。', tags:['摸子孙窑','生殖崇拜','求子'] },
   { id:'q8', cat:'axis', step:'第 8 站', name:'太始门 · 八卦坛', px:666, py:382, lx:-160, ly:-42,
     desc:'香客到此稍作休整，面对伏羲陵方向祷告，为家人祈求平安顺遂。八卦坛上，香客按八卦方位绕行，感悟伏羲画八卦的功德。',
     tip:'', tags:['祭拜祷告','绕八卦方位'] },
   { id:'q9', cat:'axis', step:'第 9 站', name:'伏羲陵冢', px:553, py:150, lx:150, ly:-26,
-    desc:'人祖坟，中轴线终点。古老习俗“添坟土”：远道而来的香客从家乡带一把泥土撒在陵冢上，寓意不忘故土血脉。另一普遍习俗是“绕陵转拜”——沿陵冢外围步道顺时针绕行三圈，边走边祷告。',
-    tip:'文物保护提示：现已禁止往陵上抛洒泥土，改为焚香叩拜。', tags:['添坟土','绕陵三圈','还旗杆'] },
+    desc:'俗称人祖坟，是朝祖叙事中的核心地点。旧俗“添坟土”：远道而来的香客从家乡带一把泥土撒在陵冢上，寓意不忘故土血脉。“绕陵转拜”的讲述，则把绕行与祷告相连。',
+    tip:'此处介绍添土、绕陵的旧俗寓意。实地参观请遵循现场文物保护提示。', tags:['添坟土','绕陵三圈','还旗杆'] },
   { id:'q10', cat:'axis', step:'第 10 站 · 终点', name:'蓍草园', px:438, py:112, lx:-130, ly:-30,
     desc:'传说伏羲采蓍草推演先天八卦，古时香客采摘蓍草当作祈福灵物带回家，如今为保护古植物，不允许采摘，仅作观瞻祭拜。',
     tip:'', tags:['采撷蓍草','古占卜','伏羲画卦'] },
@@ -643,14 +651,14 @@ const SUBS = {
       {x:50,y:66,t:'晨钟暮鼓',d:'平日晨钟暮鼓按时序敲响，为香客标注一天祭拜的节律。'}],
   q6:[{x:50,y:60,t:'敬献香供',d:'焚香、摆糕点水果与压缩馍为供，跪拜伏羲祈国泰民安、阖家顺遂。'},
       {x:50,y:88,t:'殿前月台',d:'大型官方公祭大典于此月台举行，钟鼓齐鸣。'}],
-  q7:[{x:76,y:62,t:'子孙窑',d:'殿东北角青石台基上的圆孔，六千多年前远古民俗遗存。'},
+  q7:[{x:76,y:62,t:'子孙窑',d:'殿东北角青石台基上的圆孔，民间以摸石孔的旧俗寄托子孙绵延的愿望。'},
       {x:76,y:76,t:'顺逆之别',d:'顺时针摸祈男孩，逆时针摸祈女孩，皆求子孙绵延、家庭和睦。'},
       {x:50,y:66,t:'婚配礼俗',d:'殿内奉伏羲圣像；相传伏羲女娲制嫁娶之礼，此殿亦被视为远古婚配礼俗的遗存。'}],
   q8:[{x:50,y:30,t:'面向陵冢祷告',d:'穿过“太始门”门洞至此稍作休整，面朝伏羲陵方向为家人祈平安顺遂。'},
       {x:50,y:62,t:'八卦坛 · 绕行',d:'门洞北望八卦坛，按八卦方位绕行，感悟伏羲画八卦的功德。'}],
   q9:[{x:37,y:44,t:'添坟土',d:'旧俗：远道香客自带家乡土撒于陵上，寓不忘故土血脉。'},
       {x:60,y:58,t:'绕陵三圈',d:'沿陵冢外围步道顺时针绕行三圈，边走边祷告，是最普遍的朝拜方式。'},
-      {x:76,y:32,t:'文物保护',d:'现已禁止抛洒泥土、攀爬陵体，改为焚香叩拜。'},
+      {x:76,y:32,t:'文物保护',d:'了解添土旧俗的文化含义，实地参观遵循现场文物保护提示。'},
       {x:20,y:20,t:'「耳柏」古树',d:'陵前千年古柏，树干上生有人耳状树瘤，民间称“耳柏”，传为人祖倾听子孙祈愿。',img:'assets/img/030.jpg'},
       {x:18,y:76,t:'重修陵墓碑',d:'历代重修伏羲陵墓碑刻，盘龙碑首，记述历次修陵纪事。',img:'assets/img/031.jpg'},
       {x:86,y:70,t:'陵区碑林',d:'历代祭祀碑刻林立、赑屃驮碑，是庙会千年香火的实证。',img:IMG_BL}],
@@ -1070,6 +1078,13 @@ function openSub(p,index,trigger,{autoplay=true}={}){
  const item=(SUBS[p.id]||[])[index];if(!item)return;
  visitorFlow?.media(index);stopTimeline();
  stopTourForReading();const oldVideo=pop.querySelector('video');if(oldVideo)oldVideo.pause();
+ if(item.sceneImage&&window.TaihaoImageViewer){
+  hidePop(false,{history:false});
+  activeSub={point:p,index};popTrigger=trigger||popTrigger;directImageAnnotation=true;viewerContext={point:p.id,note:index};
+  dsubs.querySelectorAll('.sub').forEach(el=>el.classList.toggle('on',+el.dataset.i===index));
+  TaihaoImageViewer.open({src:item.img,alt:p.name+'中的'+item.t,title:p.name+' · '+item.t,caption:item.d||window.TaihaoStories?.points[p.id]?.lead||'',closeLabel:'关闭细节，返回场景',trigger:popTrigger,focus:annotationFocus(p,index)});
+  return;
+ }
  activeSub={point:p,index};popTrigger=trigger||popTrigger;
  dsubs.querySelectorAll('.sub').forEach(el=>el.classList.toggle('on',+el.dataset.i===index));
  pop.querySelector('b').textContent=item.t;
@@ -1077,7 +1092,7 @@ function openSub(p,index,trigger,{autoplay=true}={}){
  const media=pop.querySelector('.pmedia');
  if(item.v){
   media.innerHTML='<span class="vbox"><video controls playsinline preload="metadata"></video></span>';
-  const video=media.querySelector('video');video.src=videoUrl(item.v);if(autoplay)safePlay(video);
+  const video=media.querySelector('video');video.src=videoUrl(item.v);video.addEventListener('playing',()=>recordDiscovery(p.id,'video',index),{once:true});if(autoplay)safePlay(video);
  }else if(item.img){media.innerHTML=item.sceneImage?`<a class="scene-full-image" href="${item.img}" target="_blank" rel="noopener noreferrer" aria-label="放大${item.t}细节"><span class="scene-detail-crop"><img class="pimg" src="${item.img}" alt="${p.name}中的${item.t}" decoding="async"></span><span>放大这处细节 ↗</span></a>`:`<img class="pimg" src="${item.img}" alt="${item.t}" decoding="async">`}
  else media.innerHTML='';
  const entries=SUBS[p.id]||[],footer=pop.querySelector('.pop-nav');
@@ -1086,6 +1101,7 @@ function openSub(p,index,trigger,{autoplay=true}={}){
  const fullImage=media.querySelector('.scene-full-image');if(fullImage)fullImage.onclick=e=>{if(e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();e.stopPropagation();openSceneImage(fullImage,true)};
  media.querySelector('img')?.addEventListener('load',positionPop,{once:true});media.querySelector('video')?.addEventListener('loadedmetadata',positionPop,{once:true});
  document.getElementById('popX').focus({preventScroll:true});
+ if(!item.v)recordDiscovery(p.id,'annotation',index);
 }
 function fillSubs(p){
  dsubs.innerHTML=(SUBS[p.id]||[]).map((s,i)=>`<button type="button" aria-label="${s.t}${s.v?'，视频':s.img?'，图片':''}" class="sub ${s.v?'vid':''}" data-i="${i}" data-x="${s.x}" data-y="${s.y}" style="left:${s.x}%;top:${s.y}%">${s.v?'▶':s.img?'图':i+1}</button>`).join('');
@@ -1102,8 +1118,8 @@ function fillPointMedia(p){
  box.innerHTML=items.map(item=>`<button type="button" class="media-action" ${item.action?`data-media-action="${item.action}"`:`data-sub-index="${item.index}"`}>${item.label} ↗</button>`).join('');
  box.onclick=e=>{const button=e.target.closest('button');if(!button)return;e.stopPropagation();if(button.dataset.mediaAction==='image')openSceneImage(button);else if(button.hasAttribute('data-sub-index'))openSub(state.cur,+button.dataset.subIndex,button)};
 }
-function hidePop(restoreFocus=false){
- if(pop.classList.contains('show'))visitorFlow?.closeMedia();
+function hidePop(restoreFocus=false,{history=true}={}){
+ if(history&&pop.classList.contains('show'))visitorFlow?.closeMedia();
  const video=pop.querySelector('video');if(video)video.pause();pop.classList.remove('show');activeSub=null;
  dsubs.querySelectorAll('.sub').forEach(x=>x.classList.remove('on'));
  if(restoreFocus&&popTrigger?.isConnected&&popTrigger.getClientRects().length)popTrigger.focus({preventScroll:true});
@@ -1113,6 +1129,30 @@ document.getElementById('popX').onclick=()=>hidePop(true);
 pop.querySelector('.pop-nav').onclick=e=>{if(e.target.closest('[data-share-note]')){copyCurrentLink();return}const button=e.target.closest('[data-sub-step]');if(button&&activeSub)openSub(activeSub.point,activeSub.index+Number(button.dataset.subStep),popTrigger)};
 
 let cardTab = '习俗';
+function storyFor(p){return window.TaihaoStories?.points[p.id]||{}}
+function chapterFor(p){return window.TaihaoStories?.chapters.find(chapter=>chapter.id===storyFor(p).chapterId)}
+function recordDiscovery(id,kind='story',index=null){
+ const fresh=discoveryLog?.record(id,{kind,index});
+ if(fresh)notifyVisitor(discoveryLog.persisted?'已记下一个发现 · 可在香印册中回看':'本次云游已记下一个发现');
+}
+document.addEventListener('taihao:discoverychange',()=>{
+ if(state.cur){document.getElementById('rememberDiscovery').textContent=discoveryLog?.has(state.cur.id)?'打开我的发现':'记下这个发现';syncReadingSheet()}
+ stampBook?.refresh();guideBook?.refresh();updateRouteFinish();
+});
+function fillStory(p){
+ const story=storyFor(p),chapter=chapterFor(p),index=AXIS.indexOf(p);
+ document.getElementById('storyPhase').textContent=chapter?String(window.TaihaoStories.chapters.indexOf(chapter)+1).padStart(2,'0')+' · '+chapter.title+' · '+(index+1)+'/13站':'庙会风物 · 路旁的生活';
+ document.getElementById('storyLead').textContent=story.lead||'';
+ const question=document.getElementById('storyQuestion');question.textContent=story.question||'看看这处场景的细节';question.onclick=e=>{e.stopPropagation();openSub(p,story.focusIndex||0,question)};
+ document.getElementById('pointTakeaway').textContent=story.takeaway||'';
+ const remember=document.getElementById('rememberDiscovery');remember.textContent=discoveryLog?.has(p.id)?'打开我的发现':'记下这个发现';remember.onclick=()=>{if(!discoveryLog?.has(p.id))recordDiscovery(p.id);else stampBook?.open(remember,{view:'discoveries'})};
+ const related=document.getElementById('relatedFolk');related.replaceChildren();
+ const label=document.createElement('p');label.textContent=chapter?'顺着故事，看看庙会中的人和物':'继续沿进香路云游';related.append(label);
+ const links=document.createElement('div');related.append(links);
+ const ids=chapter?({arrival:['f1','f2'],gathering:['f1','f4'],wishes:['f2','f4'],roots:['f3','f2']}[chapter.id]||[]):[];
+ for(const id of ids){const point=POIS.find(item=>item.id===id),button=document.createElement('button');button.type='button';button.textContent=point.name;button.onclick=()=>choosePoint(point);links.append(button)}
+ if(!chapter){const button=document.createElement('button');button.type='button';button.textContent='回到进香路 · '+AXIS[lastRouteIndex].name;button.onclick=()=>beginRoute({startIndex:lastRouteIndex});links.append(button)}
+}
 function fillCard(p){
   const c = CAT[p.cat].color, cat = document.getElementById('dcardCat');
   cat.textContent = CAT[p.cat].label; cat.style.color = c; cat.style.border = '1px solid ' + c;
@@ -1122,21 +1162,22 @@ function fillCard(p){
   const tabs = ['习俗','非遗','提示'];
   const tabBar=document.getElementById('dcardTabs');
   if(!tabBar.children.length)tabBar.innerHTML=tabs.map((t,i)=>`<button type="button" id="detail-tab-${i}" role="tab" aria-controls="dcardBody" class="dtab" data-t="${t}">${t}</button>`).join('');
-  for(const tab of tabBar.children){const selected=tab.dataset.t===cardTab;tab.classList.toggle('on',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1}
+  for(const tab of tabBar.children){const selected=tab.dataset.t===cardTab;tab.textContent=tab.dataset.t==='习俗'?'故事':tab.dataset.t==='提示'?'游览提示':SUBS.HERITAGE[p.id]?'非遗':'文化关联';tab.classList.toggle('on',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1}
   document.getElementById('dcardBody').setAttribute('aria-labelledby','detail-tab-'+tabs.indexOf(cardTab));
-  const heritage = (SUBS.HERITAGE && SUBS.HERITAGE[p.id]) ||
-    '相关非遗背景：太昊伏羲祭典于 2006 年列入第一批国家级非物质文化遗产名录，申报地区为河南省淮阳县。此处介绍相关文化背景，并非将单体建筑认定为非遗项目。';
+  const story=storyFor(p),heritage=SUBS.HERITAGE[p.id];
   const body = document.getElementById('dcardBody');
-  if (cardTab === '习俗')      body.innerHTML = p.desc;
+  if (cardTab === '习俗')      body.innerHTML = '<span class="content-kind">民俗故事 · 旧俗叙事</span>'+p.desc;
   else if(cardTab==='非遗'){
-    const source=p.id==='f4'?'https://www.zhoukou.gov.cn/page_pc/xwzx/xqdt/xqdt/articleac707654e6b84e90aea64ea61c73f07b.html':p.id==='f2'?'https://www.ihchina.cn/art/detail/id/14053.html':'https://www.ihchina.cn/art/detail/id/14991.html';
-    body.innerHTML=heritage+`<p class="heritage-source"><a href="${source}" target="_blank" rel="noopener noreferrer">资料来源：${p.id==='f4'?'周口市人民政府':'中国非物质文化遗产网'} ↗</a></p>`;
+    body.replaceChildren();const heading=document.createElement('h4');heading.className='context-title';heading.textContent=story.contextTitle||'相关文化';body.append(heading);
+    const context=document.createElement('div');if(heritage)context.innerHTML=heritage;else context.textContent=story.context||'';body.append(context);
+    for(const id of story.sourceIds||[]){const source=window.TaihaoStories.sources.find(item=>item.id===id&&item.pointIds.includes(p.id));if(!source)continue;const line=document.createElement('p'),link=document.createElement('a');line.className='heritage-source';link.href=source.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='资料来源：'+source.title+' ↗';line.append(link);body.append(line)}
   }
   else                         body.innerHTML = p.tip
       ? `<div class="tip">${p.tip}</div>`
       : '按现行管理规范文明进香，遵守景区文物保护规定。';
-  tabBar.onclick=e=>{const tab=e.target.closest('.dtab');if(!tab)return;stopTourForReading();cardTab=tab.dataset.t;visitorFlow?.tab(cardTab);fillCard(state.cur)};
-  tabBar.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();e.stopPropagation();stopTourForReading();let i=tabs.indexOf(cardTab);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;cardTab=tabs[i];visitorFlow?.tab(cardTab);fillCard(state.cur);tabBar.children[i].focus()};
+  tabBar.onclick=e=>{const tab=e.target.closest('.dtab');if(!tab)return;stopTourForReading();cardTab=tab.dataset.t;visitorFlow?.tab(cardTab);if(cardTab==='非遗')recordDiscovery(p.id);fillCard(state.cur)};
+  tabBar.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();e.stopPropagation();stopTourForReading();let i=tabs.indexOf(cardTab);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;cardTab=tabs[i];visitorFlow?.tab(cardTab);if(cardTab==='非遗')recordDiscovery(p.id);fillCard(state.cur);tabBar.children[i].focus()};
+  fillStory(p);
   fillPointMedia(p);
   refreshStampBtn();
   syncReadingSheet();
@@ -1217,8 +1258,8 @@ function syncPrimaryNavigation(){
 }
 function syncReadingSheet(){
  if(!state.cur)return;
- const sequence=routeActive?AXIS:SEQ,index=sequence.indexOf(state.cur);
- window.TaihaoReadingSheet?.sync({pointId:state.cur.id,hasPrevious:index>0,hasNext:index>=0&&index<sequence.length-1,routeActive});
+ const sequence=routeActive?AXIS:SEQ,index=sequence.indexOf(state.cur),story=storyFor(state.cur);
+ window.TaihaoReadingSheet?.sync({pointId:state.cur.id,hasPrevious:index>0,hasNext:index>=0&&index<sequence.length-1,routeActive,index,total:sequence.length,chapterTitle:chapterFor(state.cur)?.title||'庙会风物',question:story.question||'',hasVideo:(SUBS[state.cur.id]||[]).some(item=>item.v),canStamp:STAMPS.includes(state.cur.id),discovered:!!discoveryLog?.has(state.cur.id)});
 }
 document.querySelector('.brand').addEventListener('click',e=>{if(state.level!=='map'&&e.button===0&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();closeDetail()}});
 capsbar.addEventListener('click', e => {
@@ -1231,7 +1272,7 @@ capsbar.addEventListener('click', e => {
 });
 renderCaps();
 window.addEventListener('keydown', e => {
-  if(window.TaihaoImageViewer?.isOpen||document.getElementById('nearbyPicker').open||stampBook?.isOpen)return;
+  if(window.TaihaoImageViewer?.isOpen||document.getElementById('nearbyPicker').open||stampBook?.isOpen||guideBook?.isOpen)return;
   if(e.target.closest('input,textarea,select,[contenteditable="true"]'))return;
   if(e.key==='Escape'){if(atlas.classList.contains('show')){closeAtlas();return}if(pop.classList.contains('show')){hidePop(true);return}if(!moreTools.hidden)return;closeDetail();}
   if(atlas.classList.contains('show')||!moreTools.hidden||pop.classList.contains('show'))return;
@@ -1516,7 +1557,7 @@ mapview.addEventListener('click', e => {
 
 /* 点击空白处收起说明浮层 */
 detailview.addEventListener('click', e => {
-  if (!e.target.closest('.sub') && !e.target.closest('.pop')) hidePop();
+  if (!e.target.closest('.sub,.pop,.rs-quick-action,#storyQuestion,#pointMedia')) hidePop();
 });
 let previousPhone=isPhone();
 window.addEventListener('resize',()=>{const phone=isPhone();if(phone!==previousPhone&&Math.abs(view.k-(previousPhone?1.95:1))<.01&&Math.abs(view.x)<1&&Math.abs(view.y)<1)view.k=phone?1.95:1;previousPhone=phone;measureMap();layout();layoutDetail();positionPop()});
@@ -1592,11 +1633,12 @@ function setDetailPending(point){
  pending.textContent=point?'正在前往 · '+point.name:'';
  document.getElementById('dcard').setAttribute('aria-busy',String(!!point));
  dsubs.inert=!!point;document.getElementById('dimg').setAttribute('aria-busy',String(!!point));
- for(const region of document.querySelectorAll('#dcardTabs,#pointMedia,#dcard .acts'))region.inert=!!point;
+ for(const region of document.querySelectorAll('#dcardTabs,#pointMedia,#dcard .acts,.point-story,.point-discovery,.related-folk'))region.inert=!!point;
 }
 function syncRouteStartLabel(){document.getElementById('btnTour').textContent=routeActive?'结束巡游':lastRouteIndex>0?'继续巡游':'▶ 开始进香巡游'}
 function updateRouteFinish(){
  const complete=routeActive&&state.level==='detail'&&state.cur===AXIS.at(-1);document.getElementById('routeFinish').hidden=!complete;
+ if(complete)document.querySelector('#routeFinish p').textContent='13站已走完，留下了'+(discoveryLog?.count||0)+'处发现。接着看看人们带回家的庙会风物。';
  if(complete&&!showingRouteFinish)queueMicrotask(()=>window.TaihaoReadingSheet?.expand());
  showingRouteFinish=complete;
 }
@@ -1606,9 +1648,17 @@ function openSceneImage(trigger,preserveAnnotation=false){
  if(!window.TaihaoImageViewer){notifyVisitor('场景大图暂未载入，请稍后重试。');return}
  const annotation=preserveAnnotation&&activeSub?.point===state.cur?activeSub:null;
  const item=annotation?(SUBS[state.cur.id]||[])[annotation.index]:null;
- TaihaoImageViewer.open({src:ART[state.cur.id],alt:state.cur.name+'场景插画',title:item?state.cur.name+' · '+item.t:state.cur.name,trigger,focus:annotation?annotationFocus(state.cur,annotation.index):null});
+ directImageAnnotation=!!annotation;viewerContext={point:state.cur.id,note:annotation?.index??null};
+ TaihaoImageViewer.open({src:ART[state.cur.id],alt:state.cur.name+'场景插画',title:item?state.cur.name+' · '+item.t:state.cur.name,caption:item?.d||storyFor(state.cur).lead||'',closeLabel:'关闭大图，返回场景',trigger,focus:annotation?annotationFocus(state.cur,annotation.index):null});
 }
-document.addEventListener('taihao:viewerchange',event=>visitorFlow?.image(event.detail?.open===true));
+document.addEventListener('taihao:viewerchange',event=>{
+ if(event.detail?.open){visitorFlow?.image(true);return}
+ const annotation=directImageAnnotation;directImageAnnotation=false;viewerContext=null;
+ if(annotation){activeSub=null;dsubs.querySelectorAll('.sub').forEach(el=>el.classList.remove('on'));visitorFlow?.closeMedia()}else visitorFlow?.image(false);
+});
+document.addEventListener('taihao:viewerready',event=>{
+ if(viewerContext?.note!=null&&viewerContext?.point===state.cur?.id&&event.detail?.src===ART[state.cur.id])recordDiscovery(state.cur.id,'annotation',viewerContext.note);
+});
 function readVisit(){
  try{
   const value=JSON.parse(localStorage.getItem('taihao-visit-v1')||'null'),now=Date.now();
@@ -1630,8 +1680,9 @@ let initialVisit=null,restoreInitialCamera=false;
 async function restoreVisitor(snapshot,{initial=false}={}){
  const revision=visitorFlow.revision;
  stopTour();stopTimeline();
- if(!snapshot.image&&window.TaihaoImageViewer?.isOpen)TaihaoImageViewer.close({restoreFocus:false,fromHistory:true});
+ if(window.TaihaoImageViewer?.isOpen&&(!snapshot.image||viewerContext?.point!==snapshot.point||viewerContext?.note!==snapshot.media))TaihaoImageViewer.close({restoreFocus:false});
  if(snapshot.overlay!=='stamps')stampBook?.close({restoreFocus:false,notify:false});
+ if(snapshot.overlay!=='guide')guideBook?.close({restoreFocus:false,notify:false});
  if(snapshot.overlay!=='nearby')closeNearby({restoreFocus:false,history:false});
  if(snapshot.overlay!=='atlas')closeAtlas({restoreFocus:false});
  if(snapshot.overlay!=='menu')closeMoreTools();
@@ -1656,8 +1707,8 @@ async function restoreVisitor(snapshot,{initial=false}={}){
  if(visitorFlow.revision!==revision)return;
  visitorFlow.silently(()=>{
   if(state.cur){cardTab=snapshot.tab;fillCard(state.cur);setDetailPending(null);if(snapshot.media!==null)openSub(state.cur,snapshot.media,dsubs.querySelector(`[data-i="${snapshot.media}"]`),{autoplay:false})}
-  if(snapshot.overlay==='atlas')openAtlas();else if(snapshot.overlay==='menu')openMoreTools(true);else if(snapshot.overlay==='stamps')stampBook?.open();else if(snapshot.overlay==='nearby')openNearby();
-  if(snapshot.image&&state.cur)openSceneImage(pop.querySelector('.scene-full-image')||document.querySelector('[data-media-action="image"]'),true);
+  if(snapshot.overlay==='atlas')openAtlas();else if(snapshot.overlay==='menu')openMoreTools(true);else if(snapshot.overlay==='stamps')stampBook?.open(null,{view:snapshot.bookView});else if(snapshot.overlay==='nearby')openNearby();else if(snapshot.overlay==='guide')guideBook?.open();
+  if(snapshot.image&&state.cur&&!window.TaihaoImageViewer?.isOpen)openSceneImage(pop.querySelector('.scene-full-image')||document.querySelector('[data-media-action="image"]'),true);
   renderCaps();syncRouteStartLabel();
  });
  saveVisit();
@@ -1665,16 +1716,29 @@ async function restoreVisitor(snapshot,{initial=false}={}){
 window.addEventListener('pageshow',event=>{if(event.persisted)visitorFlow?.refresh()});
 
 /* ================= 启动渲染（放在最后，确保所有状态已就绪） ================= */
+discoveryLog=window.TaihaoDiscoveryLog?.create({points:window.TaihaoStories?.points||{},annotationCounts:Object.fromEntries(POIS.map(p=>[p.id,(SUBS[p.id]||[]).length]))});
+guideBook=window.TaihaoJourneyGuide?.create({
+ points:POIS,chapters:window.TaihaoStories?.chapters||[],sources:window.TaihaoStories?.sources||[],getCurrent:()=>state.cur?.id,hasDiscovery:id=>!!discoveryLog?.has(id),
+ onOpen:()=>{visitorFlow?.openOverlay('guide');stopTimeline();stopTourForReading();hidePop();closeMoreTools();closeAtlas({restoreFocus:false});stampBook?.close({restoreFocus:false,notify:false})},
+ onClose:({reason})=>{if(reason!=='choose')visitorFlow?.closeOverlay('guide')},
+ onChoose:id=>beginRoute({startIndex:AXIS.findIndex(p=>p.id===id)})
+});
+document.getElementById('journeyAbout').onclick=function(){guideBook?.open(this)};
 stampBook=window.TaihaoStampBook?.create({
- stops:STAMPS.map(id=>({id,name:POIS.find(p=>p.id===id).name})),getStamps:()=>({...stampSet}),
- onOpen:()=>{visitorFlow?.openOverlay('stamps');stopTimeline();stopTourForReading();hidePop();closeMoreTools();closeAtlas({restoreFocus:false})},
+ stops:STAMPS.map(id=>({id,name:POIS.find(p=>p.id===id).name,...storyFor(POIS.find(p=>p.id===id))})),getStamps:()=>({...stampSet}),
+ points:POIS.map(p=>({id:p.id,name:p.name,...storyFor(p)})),getDiscoveries:()=>discoveryLog?.getAll()||{},
+ onOpen:()=>{visitorFlow?.openOverlay('stamps',{view:stampBook?.view});stopTimeline();stopTourForReading();hidePop();closeMoreTools();closeAtlas({restoreFocus:false});guideBook?.close({restoreFocus:false,notify:false})},
+ onViewChange:view=>{if(visitorFlow?.snapshot.overlay==='stamps')visitorFlow.openOverlay('stamps',{view})},
  onClose:({reason})=>{if(!['choose','explore'].includes(reason))visitorFlow?.closeOverlay('stamps')},
  onChoose:id=>choosePoint(POIS.find(p=>p.id===id)),
  onExplore:()=>{atlasTab='全部';atlasSearch.value='全域民俗';openAtlas()}
 });
 document.getElementById('openStampBook').onclick=function(){stampBook?.open(this)};
 window.TaihaoReadingSheet?.init({
- onPrevious:()=>stepFromReading(-1),onNext:()=>stepFromReading(1),onExpandChange:expanded=>{if(expanded)stopTourForReading()}
+ onPrevious:()=>stepFromReading(-1),onNext:()=>stepFromReading(1),onExpandChange:expanded=>{if(expanded)stopTourForReading()},
+ onExplore:trigger=>{if(state.cur)openSub(state.cur,storyFor(state.cur).focusIndex||0,trigger)},
+ onVideo:trigger=>{if(!state.cur)return;const index=(SUBS[state.cur.id]||[]).findIndex(item=>item.v);if(index>=0)openSub(state.cur,index,trigger)},
+ onStamp:()=>document.getElementById('dStampBtn').click(),onOverview:trigger=>guideBook?.open(trigger)
 });
 function stepFromReading(direction){
  if(state.level!=='detail')return;stopTourForReading();
@@ -1718,6 +1782,7 @@ lastRouteIndex=!freshVisit&&initialVisit?initialVisit.lastRouteIndex:0;
 window.__taihaoFlowErrors=[];
 visitorFlow=TaihaoVisitorFlow.create({
  ids:POIS.map(p=>p.id),axisIds:AXIS.map(p=>p.id),noteCounts:Object.fromEntries(POIS.map(p=>[p.id,(SUBS[p.id]||[]).length])),
+ imageNotes:Object.fromEntries(POIS.map(p=>[p.id,(SUBS[p.id]||[]).flatMap((item,index)=>item.sceneImage?[index]:[])])),
  initialState:startWithRoute?{point:AXIS[0].id,route:true}:!freshVisit&&visitParams.get('resume')==='1'&&initialVisit?{point:initialVisit.point,route:initialVisit.route,tab:initialVisit.tab}:null,
  onRestore:restoreVisitor,onCommit:scheduleVisitSave,
  onError:error=>{window.__taihaoFlowErrors.push(String(error));notifyVisitor('这一处没有完整打开，请重新选择点位。');console.error(error)}

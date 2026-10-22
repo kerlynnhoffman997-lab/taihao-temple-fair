@@ -49,3 +49,34 @@
 @media(max-height:520px){.taihao-stamp-book{height:calc(100svh - 16px)}.taihao-stamp-book .tsb-header{padding:9px 16px}.taihao-stamp-book .tsb-eyebrow{display:none}.taihao-stamp-book h2{font-size:22px}.taihao-stamp-book .tsb-progress{padding:0 16px 8px}.taihao-stamp-book #tsb-summary{margin-bottom:5px;font-size:12px}.taihao-stamp-book .tsb-record-note{display:none}.taihao-stamp-book .tsb-filters{padding:7px 16px}.taihao-stamp-book .tsb-footer{padding:8px 16px}.taihao-stamp-book .tsb-footer p{display:none}.taihao-stamp-book .tsb-scroll{padding-left:16px;padding-right:16px}}
 @media(max-height:520px) and (min-width:480px){.taihao-stamp-book .tsb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.taihao-stamp-book .tsb-place{min-height:80px;flex-direction:row;gap:8px;padding:8px 6px;text-align:left}.taihao-stamp-book .tsb-seal{width:42px;height:42px;font-size:16px;outline-offset:-6px}.taihao-stamp-book .tsb-place-name{font-size:12px}.taihao-stamp-book .tsb-place-state{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.taihao-stamp-book .tsb-shell{animation:none}.taihao-stamp-book .is-stamped .tsb-seal{transform:none}}
+
+/* Cultural discoveries and the nine visit seals are independent records. */
+.taihao-stamp-book .tsb-shell{grid-template-rows:auto auto auto auto minmax(0,1fr) auto}
+.taihao-stamp-book .tsb-modes{display:flex;gap:8px;padding:0 24px 12px}
+.taihao-stamp-book .tsb-mode{flex:1;display:flex;align-items:center;justify-content:center;min-height:44px;padding:9px 12px;border:1px solid #d2c3ab;border-radius:6px;background:#fffaf0;color:#756047;font-size:12px}
+.taihao-stamp-book .tsb-mode[aria-pressed=true]{background:#30271d;color:#fffaf0;border-color:#30271d}
+.taihao-stamp-book.shows-discoveries .tsb-mode[aria-pressed=true]{background:#3e7164;border-color:#3e7164}
+.taihao-stamp-book.shows-discoveries .tsb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.taihao-stamp-book .tsb-discovery-card{display:flex;flex-direction:column;gap:10px;height:100%;padding:15px;border:1px solid #d9cbb5;border-radius:8px;background:#fffaf0;text-align:left}
+.taihao-stamp-book .tsb-discovery-card.is-discovered{border-color:#9eb9ab;background:#f0f3e9}
+.taihao-stamp-book .tsb-discovery-heading{display:flex;align-items:start;justify-content:space-between;gap:10px}
+.taihao-stamp-book .tsb-discovery-name{margin:0;color:#3c493c;font-size:15px;line-height:1.6}
+.taihao-stamp-book .tsb-discovery-state{flex-shrink:0;color:#657d66;font-size:10px;line-height:2.4}
+.taihao-stamp-book .tsb-discovery-takeaway{flex:1;margin:0;color:#6d624e;font-size:12px;line-height:1.85;overflow-wrap:anywhere}
+.taihao-stamp-book .tsb-discovery-visit{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 10px;border:1px solid #b6c6b2;border-radius:5px;background:#fafbf3;color:#48634d;font-size:12px}
+.taihao-stamp-book.shows-discoveries #tsb-summary{color:#4d7059}
+@media(max-width:580px){.taihao-stamp-book .tsb-modes{padding:0 16px 10px;gap:6px}.taihao-stamp-book .tsb-mode{font-size:11px;padding:8px 7px}.taihao-stamp-book.shows-discoveries .tsb-grid{grid-template-columns:1fr}.taihao-stamp-book .tsb-discovery-card{padding:12px}.taihao-stamp-book .tsb-discovery-name{font-size:14px}}
+@media(max-height:520px) and (min-width:480px){
+ .taihao-stamp-book .tsb-shell{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto minmax(0,1fr) auto}
+ .taihao-stamp-book .tsb-header{grid-column:1;grid-row:1;padding:8px 12px}
+ .taihao-stamp-book .tsb-modes{grid-column:2;grid-row:1;align-items:center;gap:6px;padding:8px 12px 8px 0}
+ .taihao-stamp-book .tsb-mode{min-width:100px;font-size:10px;padding:8px 6px}
+ .taihao-stamp-book .tsb-progress{grid-column:1;grid-row:2;padding:0 12px 8px;border:0}
+ .taihao-stamp-book .tsb-filters{grid-column:2;grid-row:2;padding:0 12px 8px 0;gap:5px}
+ .taihao-stamp-book .tsb-filter{min-width:62px;min-height:44px;padding:7px 6px;font-size:10px}
+ .taihao-stamp-book .tsb-scroll{grid-column:1/-1;grid-row:3}
+ .taihao-stamp-book .tsb-footer{grid-column:1/-1;grid-row:4}
+ .taihao-stamp-book.shows-discoveries .tsb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .taihao-stamp-book .tsb-discovery-card{gap:6px;padding:10px}
+ .taihao-stamp-book .tsb-discovery-name{font-size:12px}.taihao-stamp-book .tsb-discovery-takeaway{font-size:11px;line-height:1.7}
+}

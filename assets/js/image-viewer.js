@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const events = new AbortController();
-  let dialog, viewport, image, heading, message, zoomButton, resetButton, closeButton, readout, retryButton;
+  let dialog, viewport, image, heading, message, zoomButton, resetButton, closeButton, readout, retryButton, caption;
   let observer, opened = false, destroyed = false, trigger = null, bodyOverflow = '', request = 0;
   let scale = 1, x = 0, y = 0, frame = 0, boxWidth = 0, boxHeight = 0, fitWidth = 0, fitHeight = 0;
   let currentSource = '', requestedFocus = null;
@@ -96,7 +96,7 @@
     dialog = document.createElement('dialog');
     dialog.className = 'taihao-image-viewer';
     dialog.setAttribute('aria-labelledby', 'taihao-image-viewer-title');
-    dialog.innerHTML = `<div class="tv-shell"><header class="tv-header"><h2 id="taihao-image-viewer-title"></h2><div class="tv-actions"><button type="button" class="tv-button tv-zoom" aria-label="放大图片">＋ 放大</button><button type="button" class="tv-button tv-reset" aria-label="复位图片">复位</button><button type="button" class="tv-button tv-close" aria-label="关闭大图，返回原注解">×</button></div></header><div class="tv-viewport"><img class="tv-image" draggable="false" decoding="async" alt=""><p class="tv-message" role="status"></p><button type="button" class="tv-button tv-retry" hidden>重新加载图片</button></div><footer class="tv-footer"><span class="tv-hint">双击放大 · 放大后拖动查看</span><output class="tv-scale" aria-label="图片缩放比例">100%</output></footer></div>`;
+    dialog.innerHTML = `<div class="tv-shell"><header class="tv-header"><h2 id="taihao-image-viewer-title"></h2><div class="tv-actions"><button type="button" class="tv-button tv-zoom" aria-label="放大图片">＋ 放大</button><button type="button" class="tv-button tv-reset" aria-label="复位图片">复位</button><button type="button" class="tv-button tv-close" aria-label="关闭大图，返回原注解">×</button></div></header><div class="tv-viewport"><img class="tv-image" draggable="false" decoding="async" alt=""><p class="tv-message" role="status"></p><button type="button" class="tv-button tv-retry" hidden>重新加载图片</button></div><footer class="tv-footer"><p class="tv-caption" id="taihao-image-viewer-caption" tabindex="0" hidden></p><span class="tv-hint">双击放大 · 放大后拖动查看</span><output class="tv-scale" aria-label="图片缩放比例">100%</output></footer></div>`;
     viewport = dialog.querySelector('.tv-viewport');
     image = dialog.querySelector('.tv-image');
     heading = dialog.querySelector('h2');
@@ -106,6 +106,7 @@
     closeButton = dialog.querySelector('.tv-close');
     readout = dialog.querySelector('.tv-scale');
     retryButton = dialog.querySelector('.tv-retry');
+    caption = dialog.querySelector('.tv-caption');
     document.body.append(dialog);
     listen(closeButton, 'click', () => close());
     listen(zoomButton, 'click', () => zoom(scale + 0.5));
@@ -184,6 +185,7 @@
       measureOnce();
       focusRequestedArea();
       if (retryFocused) (resetButton.disabled ? zoomButton : resetButton).focus({ preventScroll: true });
+      document.dispatchEvent(new CustomEvent('taihao:viewerready', { detail: { src: currentSource } }));
     };
     image.onerror = () => {
       if (!opened || token !== request) return;
@@ -200,7 +202,7 @@
     schedule();
     measureOnce();
   }
-  function open({ src, alt = '', title = '完整场景图', trigger: source, focus: targetFocus } = {}) {
+  function open({ src, alt = '', title = '完整场景图', trigger: source, focus: targetFocus, caption: description = '', closeLabel = '关闭大图，返回原注解' } = {}) {
     if (destroyed || typeof src !== 'string' || !src.trim()) return false;
     mount();
     const alreadyOpen = opened;
@@ -215,6 +217,12 @@
     requestedFocus = normalizedFocus(targetFocus);
     heading.textContent = title;
     image.alt = alt || title;
+    caption.textContent = typeof description === 'string' ? description.trim() : '';
+    caption.hidden = !caption.textContent;
+    caption.parentElement.classList.toggle('has-caption', !caption.hidden);
+    if (caption.hidden) dialog.removeAttribute('aria-describedby');
+    else dialog.setAttribute('aria-describedby', caption.id);
+    closeButton.setAttribute('aria-label', typeof closeLabel === 'string' && closeLabel.trim() ? closeLabel.trim() : '关闭大图，返回原注解');
     retryButton.hidden = true;
     loadImage();
     if (!alreadyOpen) {

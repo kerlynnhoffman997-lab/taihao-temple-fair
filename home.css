@@ -72,3 +72,25 @@ body{min-height:100svh}.site-header{inset:15px 24px auto}.hero-note{display:none
  .entry-secondary{grid-column:2;gap:2px}
  .restart-link{min-width:0;padding:0 6px;font-size:10px;letter-spacing:.5px}
 }
+
+/* Explain the online visit without interrupting the entrance. */
+.hero-guide{position:absolute;top:143px;left:50%;z-index:2;transform:translateX(-50%);margin:0;
+ color:#7b6b56;font-size:12px;line-height:1.6;letter-spacing:2px;white-space:nowrap;
+ transition:opacity .24s ease}
+.is-entering .hero-guide{opacity:0}
+@media(max-width:759px){.hero-guide{top:145px;font-size:11px;letter-spacing:1px}}
+@media(max-width:759px) and (max-height:700px) and (min-height:561px){.hero-guide{top:128px}}
+@media(max-height:720px) and (min-width:760px){.hero-guide{top:116px;font-size:11px}}
+@media(max-height:560px) and (min-width:480px){
+ .hero-note{display:block;top:78px;left:24px;transform:none;font-size:10px;letter-spacing:2px}
+ .hero-guide{top:101px;left:24px;transform:none;font-size:10px;letter-spacing:.5px}
+ .footer-features{display:block;position:fixed;top:125px;left:24px;margin:0;font-size:9px;line-height:1.6;letter-spacing:0}
+ .footer-features span{margin:0 5px}
+}
+@media(max-height:560px) and (max-width:479px){
+ .hero-note{display:block;top:82px;font-size:10px;letter-spacing:2px}
+ .hero-guide{top:106px;font-size:10px;letter-spacing:.5px}
+ .footer-features{display:block;position:fixed;top:130px;left:50%;transform:translateX(-50%);margin:0;font-size:9px;letter-spacing:0;white-space:nowrap}
+ .footer-features span{margin:0 5px}
+}
+@media(prefers-reduced-motion:reduce){.hero-guide{transition:none}}
